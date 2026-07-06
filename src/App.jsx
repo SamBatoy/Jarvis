@@ -1,0 +1,66 @@
+import { useEffect, useState } from 'react'
+import Dashboard from './components/dashboard/Dashboard'
+import ChatPanel from './components/chat/ChatPanel'
+
+export default function App() {
+  const [chatOpen, setChatOpen] = useState(false)
+
+  useEffect(() => {
+    if (!chatOpen) return
+    function onKeyDown(e) {
+      if (e.key === 'Escape') setChatOpen(false)
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [chatOpen])
+
+  return (
+    <div className="flex min-h-screen flex-col md:flex-row">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-neutral-900 focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-white dark:focus:bg-neutral-100 dark:focus:text-neutral-900"
+      >
+        Skip to main content
+      </a>
+
+      <main id="main-content" className="flex-1 overflow-y-auto">
+        <Dashboard />
+      </main>
+
+      {/* Desktop: docked side panel */}
+      <aside className="hidden w-96 shrink-0 border-l border-neutral-200 md:flex md:flex-col dark:border-neutral-800">
+        <ChatPanel />
+      </aside>
+
+      {/* Mobile: collapsible drawer */}
+      <button
+        onClick={() => setChatOpen(true)}
+        className="fixed bottom-4 right-4 z-40 rounded-full bg-neutral-900 px-4 py-3 text-sm font-medium text-white shadow-lg md:hidden dark:bg-neutral-100 dark:text-neutral-900"
+      >
+        Chat
+      </button>
+      {chatOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Jarvis Chat"
+          className="fixed inset-0 z-50 flex flex-col overscroll-contain bg-white md:hidden dark:bg-neutral-950"
+        >
+          <div className="flex items-center justify-between border-b border-neutral-200 p-3 dark:border-neutral-800">
+            <span className="font-semibold">Jarvis Chat</span>
+            <button
+              onClick={() => setChatOpen(false)}
+              aria-label="Close chat"
+              className="rounded-md p-1 text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            <ChatPanel />
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

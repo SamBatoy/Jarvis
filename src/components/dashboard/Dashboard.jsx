@@ -1,0 +1,114 @@
+import { useMemo, useState } from 'react'
+import FilterBar from './FilterBar'
+import TodayStrip from './TodayStrip'
+import TodoList from './TodoList'
+import DeadlinesList from './DeadlinesList'
+import GoalsPanel from './GoalsPanel'
+import LearningPathsPanel from './LearningPathsPanel'
+import ContextBadge from './ContextBadge'
+import TodoForm from './forms/TodoForm'
+import EventForm from './forms/EventForm'
+import DeadlineForm from './forms/DeadlineForm'
+import GoalForm from './forms/GoalForm'
+import ContextForm from './forms/ContextForm'
+import { useContexts } from '../../hooks/useContexts'
+import { useEvents } from '../../hooks/useEvents'
+import { useGoals } from '../../hooks/useGoals'
+import { useUrlState } from '../../hooks/useUrlState'
+
+export default function Dashboard() {
+  const { data: contexts, isLoading: contextsLoading, error: contextsError } = useContexts()
+  const { data: events } = useEvents()
+  const { data: goals } = useGoals()
+
+  const [domain, setDomain] = useUrlState('domain', 'all')
+  const [contextId, setContextId] = useUrlState('context', null)
+  const [modal, setModal] = useState(null) // { type: 'todo'|'event'|'deadline'|'goal'|'context', item? }
+
+  const contextsById = useMemo(() => new Map((contexts ?? []).map((c) => [c.id, c])), [contexts])
+
+  function closeModal() {
+    setModal(null)
+  }
+
+  if (contextsLoading) return <p className="p-6 text-sm text-neutral-500">Loading dashboard…</p>
+  if (contextsError) return <p className="p-6 text-sm text-red-600">Couldn’t load contexts: {contextsError.message}</p>
+
+  return (
+    <div className="mx-auto max-w-5xl space-y-6 p-6">
+      <header className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-bold">Jarvis</h1>
+        <div className="flex flex-wrap gap-2">
+          <QuickAddButton label="+ Todo" onClick={() => setModal({ type: 'todo' })} />
+          <QuickAddButton label="+ Event" onClick={() => setModal({ type: 'event' })} />
+          <QuickAddButton label="+ Deadline" onClick={() => setModal({ type: 'deadline' })} />
+          <QuickAddButton label="+ Goal" onClick={() => setModal({ type: 'goal' })} />
+          <QuickAddButton label="+ Subject/Project" onClick={() => setModal({ type: 'context' })} />
+        </div>
+      </header>
+
+      <FilterBar
+        contexts={contexts ?? []}
+        domain={domain}
+        onDomainChange={setDomain}
+        contextId={contextId}
+        onContextChange={setContextId}
+      />
+
+      <TodayStrip contexts={contexts ?? []} events={events ?? []} />
+
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div className="space-y-6">
+          <TodoList
+            contextsById={contextsById}
+            domain={domain}
+            contextId={contextId}
+            onEditTodo={(todo) => setModal({ type: 'todo', item: todo })}
+          />
+          <DeadlinesList contextsById={contextsById} domain={domain} contextId={contextId} />
+        </div>
+        <div className="space-y-6">
+          <GoalsPanel />
+          <LearningPathsPanel />
+          <section aria-labelledby="contexts-heading">
+            <h2 id="contexts-heading" className="mb-2 text-sm font-semibold text-neutral-500 dark:text-neutral-400">
+              Subjects & Projects
+            </h2>
+            <ul className="flex flex-wrap gap-1.5">
+              {(contexts ?? []).map((c) => (
+                <li key={c.id}>
+                  <button onClick={() => setModal({ type: 'context', item: c })}>
+                    <ContextBadge context={c} size="md" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
+      </div>
+
+      {modal?.type === 'todo' && (
+        <TodoForm todo={modal.item} contexts={contexts ?? []} goals={goals ?? []} onClose={closeModal} />
+      )}
+      {modal?.type === 'event' && <EventForm event={modal.item} contexts={contexts ?? []} onClose={closeModal} />}
+      {modal?.type === 'deadline' && (
+        <DeadlineForm deadline={modal.item} contexts={contexts ?? []} goals={goals ?? []} onClose={closeModal} />
+      )}
+      {modal?.type === 'goal' && <GoalForm goal={modal.item} onClose={closeModal} />}
+      {modal?.type === 'context' && (
+        <ContextForm context={modal.item} allContexts={contexts ?? []} onClose={closeModal} />
+      )}
+    </div>
+  )
+}
+
+function QuickAddButton({ label, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm font-medium hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
+    >
+      {label}
+    </button>
+  )
+}

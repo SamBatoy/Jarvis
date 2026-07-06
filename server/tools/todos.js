@@ -1,0 +1,32 @@
+import { supabaseAdmin } from '../supabaseAdmin.js'
+
+export async function listTodos(args) {
+  let query = supabaseAdmin.from('todos').select('*').order('due_date', { ascending: true, nullsFirst: false })
+  if (args.contextId) query = query.eq('context_id', args.contextId)
+  if (args.done !== undefined) query = query.eq('done', args.done)
+  if (args.goalId) query = query.eq('goal_id', args.goalId)
+  if (args.taskType) query = query.eq('task_type', args.taskType)
+  if (args.topLevelOnly) query = query.is('parent_todo_id', null)
+  if (args.dueBefore) query = query.lte('due_date', args.dueBefore)
+  if (args.dueAfter) query = query.gte('due_date', args.dueAfter)
+  const { data, error } = await query
+  if (error) throw error
+  return data
+}
+
+export async function updateTodo({ id, fields }) {
+  const { data, error } = await supabaseAdmin.from('todos').update(fields).eq('id', id).select().single()
+  if (error) throw error
+  return data
+}
+
+// propose_create_todo: the preview IS the row to insert — nothing to compute.
+export async function proposeCreateTodo(fields) {
+  return fields
+}
+
+export async function commitCreateTodo(fields) {
+  const { data, error } = await supabaseAdmin.from('todos').insert(fields).select().single()
+  if (error) throw error
+  return data
+}
