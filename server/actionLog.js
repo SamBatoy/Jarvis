@@ -59,6 +59,15 @@ export function summarizeCommit(toolName, result) {
       }
     case 'propose_archive_todo':
       return { action: 'archive_todo', summary: `Archived "${result.title}"`, entityType: 'todo', entityId: result.id }
+    case 'propose_batch_update':
+      // One combined log entry for the whole batch, not one per row — a
+      // readable audit trail, not noise.
+      return {
+        action: 'batch_update',
+        summary: `${result.summary} (${result.updated.length} item${result.updated.length === 1 ? '' : 's'})`,
+        entityType: null,
+        entityId: null,
+      }
     default:
       return { action: toolName, summary: `Ran ${toolName}`, entityType: null, entityId: null }
   }

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import FilterBar from './FilterBar'
+import DailyBriefCards from './DailyBriefCards'
 import TodayStrip from './TodayStrip'
 import TodoList from './TodoList'
 import DeadlinesList from './DeadlinesList'
@@ -54,6 +55,8 @@ export default function Dashboard() {
         contextId={contextId}
         onContextChange={setContextId}
       />
+
+      <DailyBriefCards />
 
       <TodayStrip contexts={contexts ?? []} events={events ?? []} />
 

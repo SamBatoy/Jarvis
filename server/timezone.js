@@ -1,5 +1,5 @@
 import { toZonedTime, fromZonedTime } from 'date-fns-tz'
-import { startOfDay, endOfDay, getDay } from 'date-fns'
+import { startOfDay, endOfDay, getDay, format } from 'date-fns'
 
 // Single fixed timezone for the whole app (single-user, per README/.env).
 export function appTimezone() {
@@ -21,4 +21,9 @@ export function todayRangeInAppTz() {
 
 export function dayOfWeekInAppTz() {
   return getDay(nowInAppTz())
+}
+
+// Plain 'yyyy-MM-dd' for the app's "today," used as daily_briefs.brief_date.
+export function todayDateStringInAppTz() {
+  return format(nowInAppTz(), 'yyyy-MM-dd')
 }

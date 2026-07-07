@@ -273,3 +273,36 @@ export const archiveTodoPreviewSchema = z.object({
   title: z.string().min(1),
   due_date: isoDatetime().nullable(),
 })
+
+// ─── batch update (one combined preview, one Confirm/Cancel for many rows) ─
+// Reuses the exact existing per-entity field schemas — no new field-shape
+// duplication, and todoFieldsSchema's archive-guard (archived can only ever
+// be set to false) applies here too for free.
+const batchChangeArgSchema = z.discriminatedUnion('entityType', [
+  z.object({ entityType: z.literal('todo'), id: uuid(), fields: todoFieldsSchema }),
+  z.object({ entityType: z.literal('event'), id: uuid(), fields: eventFieldsSchema }),
+  z.object({ entityType: z.literal('deadline'), id: uuid(), fields: deadlineFieldsSchema }),
+  z.object({ entityType: z.literal('goal'), id: uuid(), fields: goalFieldsSchema }),
+])
+
+export const proposeBatchUpdateSchema = z.object({
+  summary: z
+    .string()
+    .min(1)
+    .describe('One-line description of the whole batch, e.g. "Move 4 non-school tasks to Saturday".'),
+  changes: z.array(batchChangeArgSchema).min(1).max(50),
+})
+
+// `before` holds the current value of each field that's about to change,
+// so the UI can render a real "Jul 9 → Jul 12" diff, not just the new value.
+const batchChangePreviewSchema = z.discriminatedUnion('entityType', [
+  z.object({ entityType: z.literal('todo'), id: uuid(), title: z.string(), fields: todoFieldsSchema, before: z.record(z.string(), z.any()) }),
+  z.object({ entityType: z.literal('event'), id: uuid(), title: z.string(), fields: eventFieldsSchema, before: z.record(z.string(), z.any()) }),
+  z.object({ entityType: z.literal('deadline'), id: uuid(), title: z.string(), fields: deadlineFieldsSchema, before: z.record(z.string(), z.any()) }),
+  z.object({ entityType: z.literal('goal'), id: uuid(), title: z.string(), fields: goalFieldsSchema, before: z.record(z.string(), z.any()) }),
+])
+
+export const batchUpdatePreviewSchema = z.object({
+  summary: z.string().min(1),
+  changes: z.array(batchChangePreviewSchema).min(1).max(50),
+})

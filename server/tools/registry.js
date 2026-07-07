@@ -16,6 +16,7 @@ import { listLearningPaths, proposeLearningPath, commitLearningPath } from './le
 import { getTodayOverview } from './overview.js'
 import { proposeScaffold, commitScaffold } from './scaffold.js'
 import { proposeDelete, commitDelete } from './deleteEntity.js'
+import { proposeBatchUpdate, commitBatchUpdate } from './batchUpdate.js'
 
 // Recursively strips JSON-schema `format` keywords (uuid, date-time, ...).
 // See the comment in schemas.js: some OpenAI-compatible providers (Groq
@@ -212,6 +213,14 @@ export const TOOLS = {
     'propose',
     proposeLearningPath,
     { previewSchema: schemas.learningPathPreviewSchema, commit: commitLearningPath }
+  ),
+  propose_batch_update: def(
+    'propose_batch_update',
+    'Propose the SAME kind of update across several existing todos/events/deadlines/goals at once (e.g. "move all non-school tasks to Saturday" — many rows, one field change each). Returns ONE combined preview listing every change for a single Confirm/Cancel — never call update_* repeatedly or propose_* once per item when this fits; that would ask for confirmation once per item instead of once for the whole batch. Not for creating new items or for a single-entity change (use the direct update_* tools or propose_scaffold for those).',
+    schemas.proposeBatchUpdateSchema,
+    'propose',
+    proposeBatchUpdate,
+    { previewSchema: schemas.batchUpdatePreviewSchema, commit: commitBatchUpdate }
   ),
 }
 

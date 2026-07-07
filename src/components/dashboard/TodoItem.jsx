@@ -3,6 +3,7 @@ import clsx from 'clsx'
 import ContextBadge from './ContextBadge'
 import { formatDate } from '../../lib/dateUtils'
 import { useUpdateTodo } from '../../hooks/useTodos'
+import { computePriorityScore, suggestedPriorityLabel } from '../../lib/priorityScore'
 
 const PRIORITY_STYLES = {
   high: 'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300',
@@ -10,8 +11,13 @@ const PRIORITY_STYLES = {
   low: 'bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400',
 }
 
-function Row({ todo, context, onEdit }) {
+const SUGGESTION_ARROW = { high: '↑', medium: '·', low: '↓' }
+
+function Row({ todo, context, onEdit, childCount = 0 }) {
   const updateTodo = useUpdateTodo()
+  const suggested = suggestedPriorityLabel(computePriorityScore(todo, { childCount }))
+  const showSuggestion = !todo.done && suggested !== todo.priority
+
   return (
     <div className="flex items-center gap-3 py-2">
       <input
@@ -27,6 +33,14 @@ function Row({ todo, context, onEdit }) {
       >
         {todo.title}
       </button>
+      {showSuggestion && (
+        <span
+          title={`Smart Priority suggests: ${suggested}`}
+          className="shrink-0 text-xs font-medium text-blue-600 dark:text-blue-400"
+        >
+          {SUGGESTION_ARROW[suggested]} suggested: {suggested}
+        </span>
+      )}
       {todo.priority && (
         <span className={clsx('rounded px-1.5 py-0.5 text-xs font-medium', PRIORITY_STYLES[todo.priority])}>
           {todo.priority}
@@ -59,7 +73,7 @@ export default function TodoItem({ todo, context, childTodos = [], contextsById,
           <span className="mr-1 w-6 shrink-0" />
         )}
         <div className="flex-1">
-          <Row todo={todo} context={context} onEdit={onEdit} />
+          <Row todo={todo} context={context} onEdit={onEdit} childCount={childTodos.length} />
         </div>
         {hasChildren && (
           <span className="ml-2 shrink-0 text-xs text-neutral-500">

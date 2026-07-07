@@ -1,4 +1,5 @@
 import { supabaseAdmin } from '../supabaseAdmin.js'
+import { computePriorityScore, suggestedPriorityLabel } from '../../src/lib/priorityScore.js'
 
 export async function listTodos(args) {
   let query = supabaseAdmin.from('todos').select('*').order('due_date', { ascending: true, nullsFirst: false })
@@ -12,7 +13,15 @@ export async function listTodos(args) {
   if (args.dueAfter) query = query.gte('due_date', args.dueAfter)
   const { data, error } = await query
   if (error) throw error
-  return data
+
+  // Smart Priority Engine: a passive suggestion attached to each row so the
+  // model can reference it naturally — chat never acts on this by itself.
+  // No parent/child join here (unlike the dashboard, which already has the
+  // full set loaded), so effort falls back to the task_type-based proxy.
+  return data.map((todo) => ({
+    ...todo,
+    suggested_priority: suggestedPriorityLabel(computePriorityScore(todo)),
+  }))
 }
 
 export async function updateTodo({ id, fields }) {

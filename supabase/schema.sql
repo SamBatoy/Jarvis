@@ -116,3 +116,38 @@ create table if not exists action_log (
 );
 
 create index if not exists action_log_created_at_idx on action_log(created_at desc);
+
+-- Goals can be marked achieved from two independent code paths (dashboard
+-- form direct-to-Supabase, and chat's update_goal server tool) — a trigger
+-- is the single source of truth for achieved_at regardless of which path updates the row.
+create or replace function set_goal_achieved_at()
+returns trigger as $$
+begin
+  if new.status = 'achieved' and (old.status is distinct from 'achieved') then
+    new.achieved_at := now();
+  elsif new.status is distinct from 'achieved' then
+    new.achieved_at := null;
+  end if;
+  return new;
+end;
+$$ language plpgsql;
+
+drop trigger if exists goals_set_achieved_at on goals;
+create trigger goals_set_achieved_at
+  before insert or update on goals
+  for each row
+  execute function set_goal_achieved_at();
+
+-- ─── daily_briefs ────────────────────────────────────────────────────────────
+-- Morning Brief / Night Review, generated once daily by Vercel Cron (never
+-- user-triggered), persisted so they survive between cron runs and page loads.
+create table if not exists daily_briefs (
+  id uuid primary key default gen_random_uuid(),
+  brief_date date not null,
+  type text not null check (type in ('morning', 'night')),
+  content jsonb not null,
+  created_at timestamptz not null default now(),
+  unique (brief_date, type)
+);
+
+create index if not exists daily_briefs_date_idx on daily_briefs(brief_date desc);

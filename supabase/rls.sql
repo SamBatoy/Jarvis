@@ -10,6 +10,7 @@ alter table events enable row level security;
 alter table deadlines enable row level security;
 alter table learning_paths enable row level security;
 alter table action_log enable row level security;
+alter table daily_briefs enable row level security;
 
 drop policy if exists "anon full access" on contexts;
 create policy "anon full access" on contexts
@@ -37,4 +38,8 @@ create policy "anon full access" on learning_paths
 
 drop policy if exists "anon full access" on action_log;
 create policy "anon full access" on action_log
+  for all to anon using (true) with check (true);
+
+drop policy if exists "anon full access" on daily_briefs;
+create policy "anon full access" on daily_briefs
   for all to anon using (true) with check (true);

@@ -3,6 +3,14 @@
     {
       "path": "/api/cron/archive-overdue",
       "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/morning-brief",
+      "schedule": "30 13 * * *"
+    },
+    {
+      "path": "/api/cron/night-review",
+      "schedule": "0 4 * * *"
     }
   ]
 }

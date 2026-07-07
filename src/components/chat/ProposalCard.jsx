@@ -12,12 +12,26 @@ const QUERY_KEY_BY_TOOL = {
   propose_learning_path: ['learning_paths'],
 }
 
-function invalidatedQueryKey(toolName, preview) {
-  if (toolName === 'propose_delete') {
-    const table = { todo: 'todos', event: 'events', deadline: 'deadlines', goal: 'goals', context: 'contexts' }
-    return [table[preview.entityType]]
+const TABLE_BY_ENTITY_TYPE = {
+  todo: 'todos',
+  event: 'events',
+  deadline: 'deadlines',
+  goal: 'goals',
+  context: 'contexts',
+  learning_path: 'learning_paths',
+}
+
+// Returns an array of query keys to invalidate — a batch can touch several
+// tables at once (e.g. todos + deadlines in one confirm), unlike every other
+// proposal type which only ever touches one.
+function invalidatedQueryKeys(toolName, preview) {
+  if (toolName === 'propose_delete') return [[TABLE_BY_ENTITY_TYPE[preview.entityType]]]
+  if (toolName === 'propose_batch_update') {
+    const uniqueTables = [...new Set(preview.changes.map((c) => TABLE_BY_ENTITY_TYPE[c.entityType]))]
+    return uniqueTables.map((table) => [table])
   }
-  return QUERY_KEY_BY_TOOL[toolName]
+  const key = QUERY_KEY_BY_TOOL[toolName]
+  return key ? [key] : []
 }
 
 function ScaffoldPreview({ preview }) {
@@ -70,6 +84,36 @@ function DeletePreview({ preview }) {
   )
 }
 
+const ISO_DATETIME_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/
+
+function formatFieldValue(value) {
+  if (value === null || value === undefined) return '—'
+  if (typeof value === 'string' && ISO_DATETIME_RE.test(value)) return formatDateTime(value)
+  return String(value)
+}
+
+function BatchUpdatePreview({ preview }) {
+  return (
+    <div>
+      <p className="font-medium">{preview.summary}</p>
+      <ul className="mt-2 space-y-1.5 text-xs">
+        {preview.changes.map((change, i) => (
+          <li key={i}>
+            <span className="font-medium">{change.title}</span>
+            <ul className="ml-3 text-neutral-500">
+              {Object.entries(change.fields).map(([field, newValue]) => (
+                <li key={field}>
+                  {field.replace(/_/g, ' ')}: {formatFieldValue(change.before[field])} → {formatFieldValue(newValue)}
+                </li>
+              ))}
+            </ul>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
 function GenericPreview({ preview }) {
   return (
     <dl className="space-y-0.5 text-xs">
@@ -96,7 +140,10 @@ const TOOL_LABELS = {
   propose_create_context: 'Create subject/project',
   propose_delete: 'Delete',
   propose_learning_path: 'Save learning path',
+  propose_batch_update: 'Batch update',
 }
+
+const CUSTOM_PREVIEW_TOOLS = ['propose_scaffold', 'propose_delete', 'propose_learning_path', 'propose_batch_update']
 
 export default function ProposalCard({ proposal, source = 'dashboard' }) {
   const [status, setStatus] = useState('pending') // pending | confirming | confirmed | cancelled | error
@@ -117,8 +164,9 @@ export default function ProposalCard({ proposal, source = 'dashboard' }) {
         const body = await res.json().catch(() => ({}))
         throw new Error(body.error || `Request failed (${res.status})`)
       }
-      const key = invalidatedQueryKey(toolName, preview)
-      if (key) queryClient.invalidateQueries({ queryKey: key })
+      for (const key of invalidatedQueryKeys(toolName, preview)) {
+        queryClient.invalidateQueries({ queryKey: key })
+      }
       setStatus('confirmed')
     } catch (e) {
       setError(e.message)
@@ -139,9 +187,8 @@ export default function ProposalCard({ proposal, source = 'dashboard' }) {
       {toolName === 'propose_scaffold' && <ScaffoldPreview preview={preview} />}
       {toolName === 'propose_delete' && <DeletePreview preview={preview} />}
       {toolName === 'propose_learning_path' && <LearningPathPreview preview={preview} />}
-      {!['propose_scaffold', 'propose_delete', 'propose_learning_path'].includes(toolName) && (
-        <GenericPreview preview={preview} />
-      )}
+      {toolName === 'propose_batch_update' && <BatchUpdatePreview preview={preview} />}
+      {!CUSTOM_PREVIEW_TOOLS.includes(toolName) && <GenericPreview preview={preview} />}
 
       {error && (
         <p role="alert" className="mt-2 text-xs text-red-600 dark:text-red-400">
