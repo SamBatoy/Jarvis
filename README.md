@@ -113,7 +113,12 @@ changes needed.
 | `ANTHROPIC_API_KEY` | If `LLM_PROVIDER=anthropic` | From [console.anthropic.com](https://console.anthropic.com) |
 | `TAVILY_API_KEY` | No | From [tavily.com](https://tavily.com) (free tier). Without it, learning paths still generate — just without resource links, clearly noted in the UI instead of inventing any |
 | `APP_TIMEZONE` | Yes | An IANA timezone (e.g. `America/Los_Angeles`). Single fixed timezone since this is a single-user app — used for "today," class-schedule day matching, and all scaffold date placement |
-| `CRON_SECRET` | Yes | Protects `api/cron/archive-overdue.js` so only Vercel's scheduler can trigger it. Generate any high-entropy string, e.g. `node -e "console.log(require('node:crypto').randomBytes(24).toString('base64url'))"` |
+| `CRON_SECRET` | Yes | Protects `api/cron/*` so only Vercel's scheduler can trigger them. Generate any high-entropy string, e.g. `node -e "console.log(require('node:crypto').randomBytes(24).toString('base64url'))"` |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | If using Gmail detection | From Google Cloud Console → APIs & Services → Credentials (OAuth client) |
+| `GOOGLE_REDIRECT_URI` | If using Gmail detection | Must exactly match an "Authorized redirect URI" on that OAuth client. Differs per environment |
+| `APP_BASE_URL` | If using Gmail detection | The frontend's own origin (not the API's) — where the OAuth callback redirects back to. Differs per environment |
+| `SUPABASE_SERVICE_ROLE_KEY` | If using Gmail detection | From Supabase → Project Settings → API → `service_role` secret (not the anon key). Only used server-side, only for the `oauth_connections` table — see `supabase/migrations/007_phase5_google_integration.sql` |
+| `TOKEN_ENCRYPTION_KEY` | If using Gmail detection | Encrypts OAuth tokens at the application layer. Generate with `node -e "console.log(require('node:crypto').randomBytes(32).toString('base64url'))"` |
 | `DEV_API_PORT` | No | Local dev only — port for `npm run dev:api` (default `3001`) |
 
 **All of these (except `DEV_API_PORT`) must also be set in your Vercel

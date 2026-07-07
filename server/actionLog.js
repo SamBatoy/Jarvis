@@ -70,6 +70,15 @@ export function summarizeCommit(toolName, result) {
         entityType: null,
         entityId: null,
       }
+    case 'propose_suggestions':
+      return {
+        action: 'confirm_suggestions',
+        summary:
+          `Added ${result.createdCount} item${result.createdCount === 1 ? '' : 's'} from Gmail suggestions` +
+          (result.dismissedCount > 0 ? `, dismissed ${result.dismissedCount}` : ''),
+        entityType: null,
+        entityId: null,
+      }
     default:
       return { action: toolName, summary: `Ran ${toolName}`, entityType: null, entityId: null }
   }

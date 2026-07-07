@@ -11,6 +11,10 @@
     {
       "path": "/api/cron/night-review",
       "schedule": "0 4 * * *"
+    },
+    {
+      "path": "/api/cron/check-gmail",
+      "schedule": "0 */6 * * *"
     }
   ]
 }

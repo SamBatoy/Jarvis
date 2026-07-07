@@ -18,6 +18,7 @@ import { proposeScaffold, commitScaffold } from './scaffold.js'
 import { proposeDelete, commitDelete } from './deleteEntity.js'
 import { proposeBatchUpdate, commitBatchUpdate } from './batchUpdate.js'
 import { proposeWeeklyRebalance } from './loadBalancer.js'
+import { proposeSuggestions, commitSuggestions } from './suggestions.js'
 
 // Recursively strips JSON-schema `format` keywords (uuid, date-time, ...).
 // See the comment in schemas.js: some OpenAI-compatible providers (Groq
@@ -230,6 +231,14 @@ export const TOOLS = {
     'propose',
     proposeWeeklyRebalance,
     { previewSchema: schemas.batchUpdatePreviewSchema, commit: commitBatchUpdate }
+  ),
+  propose_suggestions: def(
+    'propose_suggestions',
+    'List detected-but-unconfirmed todo/deadline suggestions found by scanning Gmail for likely deadlines. Returns ONE combined preview of everything currently pending, each item defaulted to accepted — the user can accept all, some, or none before a single Confirm/Cancel. NEVER writes to the database on its own. Use this when the user asks things like "any new deadlines detected?" or "check my suggestions."',
+    schemas.proposeSuggestionsSchema,
+    'propose',
+    proposeSuggestions,
+    { previewSchema: schemas.suggestionsPreviewSchema, commit: commitSuggestions }
   ),
 }
 

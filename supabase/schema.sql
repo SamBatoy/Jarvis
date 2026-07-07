@@ -206,3 +206,47 @@ create table if not exists daily_briefs (
 );
 
 create index if not exists daily_briefs_date_idx on daily_briefs(brief_date desc);
+
+-- ─── oauth_connections ─────────────────────────────────────────────────────
+-- Phase 5 (Gmail-only — Classroom and Chat were both dropped, see
+-- migrations 008/009 for why). RLS enabled, ZERO policies for anon —
+-- an OAuth refresh token is a live credential to a real external account,
+-- qualitatively more sensitive than everything else in this app. Only the
+-- service-role client (server/supabaseServiceRole.js) can touch this table,
+-- server-side only. Token values are also encrypted at the application
+-- layer (server/tokenCrypto.js) before being written here.
+create table if not exists oauth_connections (
+  id uuid primary key default gen_random_uuid(),
+  -- Single-user app: one row per provider, upserted on (re)connect.
+  provider text not null unique check (provider in ('google')),
+  encrypted_refresh_token text not null,
+  encrypted_access_token text,
+  access_token_expires_at timestamptz,
+  scopes text not null,
+  google_email text,
+  connected_at timestamptz not null default now(),
+  last_refreshed_at timestamptz,
+  needs_reauth boolean not null default false,
+  updated_at timestamptz not null default now()
+);
+alter table oauth_connections enable row level security;
+
+-- ─── pending_suggestions ───────────────────────────────────────────────────
+-- Detected-but-unconfirmed todo/deadline candidates from Gmail.
+-- Standard anon-full-access pattern — suggestion content is low-stakes
+-- app-internal data, not a secret.
+create table if not exists pending_suggestions (
+  id uuid primary key default gen_random_uuid(),
+  source text not null check (source in ('gmail')),
+  source_id text not null,
+  suggested_type text not null check (suggested_type in ('todo', 'deadline')),
+  title text not null,
+  due_date timestamptz,
+  notes text,
+  context_id uuid references contexts(id) on delete set null,
+  status text not null default 'pending' check (status in ('pending', 'confirmed', 'dismissed')),
+  detected_at timestamptz not null default now(),
+  unique (source, source_id)
+);
+alter table pending_suggestions enable row level security;
+create index if not exists pending_suggestions_status_idx on pending_suggestions(status);

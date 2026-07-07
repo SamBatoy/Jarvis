@@ -14,6 +14,8 @@ import GoalForm from './forms/GoalForm'
 import ContextForm from './forms/ContextForm'
 import FocusMode from '../focus/FocusMode'
 import ProposalCard from '../chat/ProposalCard'
+import GoogleConnectionCard from './GoogleConnectionCard'
+import SuggestionsBatchCard from './SuggestionsBatchCard'
 import { useContexts } from '../../hooks/useContexts'
 import { useEvents } from '../../hooks/useEvents'
 import { useGoals } from '../../hooks/useGoals'
@@ -100,6 +102,9 @@ export default function Dashboard() {
         contextId={contextId}
         onContextChange={setContextId}
       />
+
+      <GoogleConnectionCard />
+      <SuggestionsBatchCard />
 
       <DailyBriefCards />
 

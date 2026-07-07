@@ -318,3 +318,28 @@ export const batchUpdatePreviewSchema = z.object({
 // reuses batchUpdatePreviewSchema directly since it just calls
 // proposeBatchUpdate internally once it's computed which todos to move.
 export const proposeWeeklyRebalanceSchema = z.object({})
+
+// Phase 5 (Gmail detection): unlike every other propose/commit flow in this
+// app, which is all-or-nothing, this one needs partial selection — "accept
+// all, some, or none." Rather than force it through propose_batch_update's
+// {entityType, id, fields} shape (built for updating *existing* rows, not
+// creating new ones from external suggestions), the preview carries an
+// `accepted` flag per item that the client toggles before sending the same
+// shape back to commit — same principle as every other propose/commit tool
+// (client sends back exactly what it was shown), just with one extra field.
+export const proposeSuggestionsSchema = z.object({})
+
+const suggestionItemSchema = z.object({
+  id: uuid(),
+  source: z.enum(['gmail']),
+  suggestedType: z.enum(['todo', 'deadline']),
+  title: z.string().min(1),
+  dueDate: isoDatetime().nullable(),
+  notes: z.string().nullable(),
+  contextId: uuid().nullable(),
+  accepted: z.boolean(),
+})
+
+export const suggestionsPreviewSchema = z.object({
+  suggestions: z.array(suggestionItemSchema).min(1),
+})
