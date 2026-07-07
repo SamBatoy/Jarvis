@@ -2,6 +2,7 @@ import { supabaseAdmin } from '../supabaseAdmin.js'
 
 export async function listTodos(args) {
   let query = supabaseAdmin.from('todos').select('*').order('due_date', { ascending: true, nullsFirst: false })
+  if (!args.includeArchived) query = query.eq('archived', false)
   if (args.contextId) query = query.eq('context_id', args.contextId)
   if (args.done !== undefined) query = query.eq('done', args.done)
   if (args.goalId) query = query.eq('goal_id', args.goalId)
@@ -27,6 +28,23 @@ export async function proposeCreateTodo(fields) {
 
 export async function commitCreateTodo(fields) {
   const { data, error } = await supabaseAdmin.from('todos').insert(fields).select().single()
+  if (error) throw error
+  return data
+}
+
+export async function proposeArchiveTodo({ id }) {
+  const { data, error } = await supabaseAdmin.from('todos').select('id, title, due_date').eq('id', id).single()
+  if (error) throw error
+  return data
+}
+
+export async function commitArchiveTodo({ id }) {
+  const { data, error } = await supabaseAdmin
+    .from('todos')
+    .update({ archived: true, archived_at: new Date().toISOString(), archive_reason: 'manual' })
+    .eq('id', id)
+    .select()
+    .single()
   if (error) throw error
   return data
 }

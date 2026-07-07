@@ -1,4 +1,5 @@
 import { getTool } from '../server/tools/registry.js'
+import { logAction, summarizeCommit } from '../server/actionLog.js'
 
 // Stateless by design: the client sends back the exact preview payload it
 // was shown (not just an id), so there's no server-side "pending proposal"
@@ -12,7 +13,7 @@ export default async function handler(req, res) {
     return
   }
 
-  const { toolName, payload } = req.body ?? {}
+  const { toolName, payload, source } = req.body ?? {}
   const tool = getTool(toolName)
   if (!tool || tool.kind !== 'propose') {
     res.status(400).json({ error: `"${toolName}" is not a proposable tool.` })
@@ -27,6 +28,10 @@ export default async function handler(req, res) {
 
   try {
     const result = await tool.commit(parsed.data)
+    // Awaited before responding rather than fire-and-forget: a serverless
+    // function's execution context can be frozen the instant the response
+    // is sent, so an un-awaited background write isn't guaranteed to finish.
+    await logAction({ ...summarizeCommit(toolName, result), source: source === 'chat' ? 'chat' : 'dashboard' })
     res.status(200).json({ result })
   } catch (e) {
     res.status(500).json({ error: e.message })

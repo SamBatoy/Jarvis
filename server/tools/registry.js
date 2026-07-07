@@ -1,6 +1,13 @@
 import { zodToJsonSchema } from 'zod-to-json-schema'
 import * as schemas from './schemas.js'
-import { listTodos, updateTodo, proposeCreateTodo, commitCreateTodo } from './todos.js'
+import {
+  listTodos,
+  updateTodo,
+  proposeCreateTodo,
+  commitCreateTodo,
+  proposeArchiveTodo,
+  commitArchiveTodo,
+} from './todos.js'
 import { listEvents, updateEvent, proposeCreateEvent, commitCreateEvent } from './events.js'
 import { listDeadlines, updateDeadline, proposeCreateDeadline, commitCreateDeadline } from './deadlines.js'
 import { listGoals, updateGoal, proposeCreateGoal, commitCreateGoal } from './goals.js'
@@ -184,11 +191,19 @@ export const TOOLS = {
   ),
   propose_delete: def(
     'propose_delete',
-    'Propose deleting a todo, event, deadline, goal, or context by id. NEVER deletes immediately; returns a preview of the exact row that would be deleted for the user to confirm. Deleting a parent todo also deletes its subtasks.',
+    'Propose deleting a todo, event, deadline, goal, context, or learning path by id. NEVER deletes immediately; returns a preview of the exact row that would be deleted for the user to confirm. Deleting a parent todo also deletes its subtasks.',
     schemas.proposeDeleteSchema,
     'propose',
     proposeDelete,
     { previewSchema: schemas.deletePreviewSchema, commit: commitDelete }
+  ),
+  propose_archive_todo: def(
+    'propose_archive_todo',
+    'Propose archiving a todo early, ahead of its deadline (e.g. the user finished it ahead of schedule). NEVER archives immediately; returns a preview for the user to confirm. Todos also auto-archive automatically once their due date passes — this tool is only for archiving something early.',
+    schemas.proposeArchiveTodoSchema,
+    'propose',
+    proposeArchiveTodo,
+    { previewSchema: schemas.archiveTodoPreviewSchema, commit: commitArchiveTodo }
   ),
   propose_learning_path: def(
     'propose_learning_path',

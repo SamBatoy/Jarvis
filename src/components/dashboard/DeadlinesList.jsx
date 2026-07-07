@@ -26,7 +26,7 @@ export default function DeadlinesList({ contextsById, domain, contextId }) {
       {filtered.length === 0 ? (
         <p className="text-sm text-neutral-500">No deadlines in view.</p>
       ) : (
-        <ul className="space-y-1.5">
+        <ul className="max-h-[280px] space-y-1.5 overflow-y-auto">
           {filtered.map((d) => {
             const overdue = isOverdue(d.due_at, d.status)
             return (

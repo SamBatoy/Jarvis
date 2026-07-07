@@ -98,7 +98,7 @@ const TOOL_LABELS = {
   propose_learning_path: 'Save learning path',
 }
 
-export default function ProposalCard({ proposal }) {
+export default function ProposalCard({ proposal, source = 'dashboard' }) {
   const [status, setStatus] = useState('pending') // pending | confirming | confirmed | cancelled | error
   const [error, setError] = useState(null)
   const queryClient = useQueryClient()
@@ -111,7 +111,7 @@ export default function ProposalCard({ proposal }) {
       const res = await fetch('/api/commit-proposal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ toolName, payload: preview }),
+        body: JSON.stringify({ toolName, payload: preview, source }),
       })
       if (!res.ok) {
         const body = await res.json().catch(() => ({}))

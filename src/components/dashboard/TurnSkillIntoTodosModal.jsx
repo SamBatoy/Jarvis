@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import Modal from '../Modal'
+import { useUpdateLearningPath } from '../../hooks/useLearningPaths'
 import { formatDateTime, toLocalInputValue, fromLocalInputValue } from '../../lib/dateUtils'
 
 function defaultDueDate() {
@@ -21,17 +22,18 @@ async function commitTool(toolName, payload) {
   const res = await fetch('/api/commit-proposal', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ toolName, payload }),
+    body: JSON.stringify({ toolName, payload, source: 'dashboard' }),
   })
   if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Request failed')
   return (await res.json()).result
 }
 
-export default function TurnSkillIntoTodosModal({ skill, topic, contexts, onClose }) {
+export default function TurnSkillIntoTodosModal({ skill, path, contexts, onClose }) {
   const queryClient = useQueryClient()
+  const updatePath = useUpdateLearningPath()
   const [mode, setMode] = useState(contexts.length > 0 ? 'existing' : 'new')
   const [selectedContextId, setSelectedContextId] = useState(contexts[0]?.id ?? '')
-  const [newContextName, setNewContextName] = useState(topic)
+  const [newContextName, setNewContextName] = useState(path.topic)
   const [dueDate, setDueDate] = useState(defaultDueDate())
   const [phase, setPhase] = useState('choose') // choose | previewing | preview | applying | done | error
   const [contextPreview, setContextPreview] = useState(null)
@@ -76,6 +78,10 @@ export default function TurnSkillIntoTodosModal({ skill, topic, contexts, onClos
         children: scaffoldPreview.children.map((c) => ({ ...c, context_id: contextId })),
       }
       await commitTool('propose_scaffold', patched)
+      // It's now a tracked task, not a pending skill — remove it from the
+      // learning path so it doesn't linger checked-off-but-visible.
+      const remainingSkills = path.skills.filter((s) => s.name !== skill.name)
+      await updatePath.mutateAsync({ id: path.id, fields: { skills: remainingSkills } })
       queryClient.invalidateQueries({ queryKey: ['todos'] })
       queryClient.invalidateQueries({ queryKey: ['contexts'] })
       setPhase('done')

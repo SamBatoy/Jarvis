@@ -1,7 +1,9 @@
 import { useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useLearningPaths, useUpdateLearningPath } from '../../hooks/useLearningPaths'
 import { useContexts } from '../../hooks/useContexts'
 import ProposalCard from '../chat/ProposalCard'
+import ConfirmDeleteButton from './forms/ConfirmDeleteButton'
 import TurnSkillIntoTodosModal from './TurnSkillIntoTodosModal'
 
 function GeneratePathForm() {
@@ -56,14 +58,38 @@ function GeneratePathForm() {
   )
 }
 
+async function proposeAndCommitDelete(entityType, id, queryClient) {
+  const proposeRes = await fetch('/api/propose', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ toolName: 'propose_delete', args: { entityType, id } }),
+  })
+  if (!proposeRes.ok) throw new Error((await proposeRes.json().catch(() => ({}))).error || 'Request failed')
+  const { preview } = await proposeRes.json()
+
+  const commitRes = await fetch('/api/commit-proposal', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ toolName: 'propose_delete', payload: preview, source: 'dashboard' }),
+  })
+  if (!commitRes.ok) throw new Error((await commitRes.json().catch(() => ({}))).error || 'Request failed')
+  queryClient.invalidateQueries({ queryKey: ['learning_paths'] })
+}
+
 export default function LearningPathsPanel() {
   const { data: paths, isLoading, error } = useLearningPaths()
   const { data: contexts } = useContexts()
   const updatePath = useUpdateLearningPath()
-  const [turnIntoTodosTarget, setTurnIntoTodosTarget] = useState(null) // { skill, topic }
+  const queryClient = useQueryClient()
+  const [turnIntoTodosTarget, setTurnIntoTodosTarget] = useState(null) // { skill, path }
 
   function toggleSkill(path, skillIndex) {
     const skills = path.skills.map((s, i) => (i === skillIndex ? { ...s, done: !s.done } : s))
+    updatePath.mutate({ id: path.id, fields: { skills } })
+  }
+
+  function deleteSkill(path, skillIndex) {
+    const skills = path.skills.filter((_, i) => i !== skillIndex)
     updatePath.mutate({ id: path.id, fields: { skills } })
   }
 
@@ -81,10 +107,16 @@ export default function LearningPathsPanel() {
         <p className="text-sm text-neutral-500">None yet — generate one above, or ask Jarvis in chat.</p>
       )}
       {!isLoading && paths?.length > 0 && (
-        <ul className="space-y-3">
+        <ul className="max-h-[360px] space-y-3 overflow-y-auto">
           {paths.map((path) => (
             <li key={path.id} className="rounded-xl border border-neutral-200 p-3 dark:border-neutral-800">
-              <h3 className="text-sm font-semibold">{path.topic}</h3>
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="text-sm font-semibold">{path.topic}</h3>
+                <ConfirmDeleteButton
+                  label="Delete path"
+                  onConfirm={() => proposeAndCommitDelete('learning_path', path.id, queryClient)}
+                />
+              </div>
               <ul className="mt-2 space-y-1.5">
                 {path.skills.map((skill, i) => (
                   <li key={skill.name} className="text-sm">
@@ -102,11 +134,12 @@ export default function LearningPathsPanel() {
                         </span>
                       </label>
                       <button
-                        onClick={() => setTurnIntoTodosTarget({ skill, topic: path.topic })}
+                        onClick={() => setTurnIntoTodosTarget({ skill, path })}
                         className="shrink-0 text-xs text-blue-600 hover:underline dark:text-blue-400"
                       >
                         Turn into todos
                       </button>
+                      <ConfirmDeleteButton label="Delete" onConfirm={() => deleteSkill(path, i)} />
                     </div>
                     {skill.resources?.length > 0 && (
                       <ul className="ml-6 mt-0.5 space-y-0.5">
@@ -135,7 +168,7 @@ export default function LearningPathsPanel() {
       {turnIntoTodosTarget && (
         <TurnSkillIntoTodosModal
           skill={turnIntoTodosTarget.skill}
-          topic={turnIntoTodosTarget.topic}
+          path={turnIntoTodosTarget.path}
           contexts={contexts ?? []}
           onClose={() => setTurnIntoTodosTarget(null)}
         />

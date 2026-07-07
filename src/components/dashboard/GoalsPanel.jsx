@@ -30,7 +30,7 @@ export default function GoalsPanel() {
       {(!goals || goals.length === 0) ? (
         <p className="text-sm text-neutral-500">No active goals yet.</p>
       ) : (
-        <ul className="space-y-3">
+        <ul className="max-h-[320px] space-y-3 overflow-y-auto">
           {goals.map((g) => {
             const progress = progressByGoal.get(g.id)
             const pct = progress && progress.total > 0 ? Math.round((progress.done / progress.total) * 100) : 0

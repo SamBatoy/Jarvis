@@ -1,9 +1,14 @@
 import { useEffect, useState } from 'react'
 import Dashboard from './components/dashboard/Dashboard'
+import CalendarView from './components/calendar/CalendarView'
+import ArchiveView from './components/archive/ArchiveView'
 import ChatPanel from './components/chat/ChatPanel'
+import ViewTabs from './components/ViewTabs'
+import { useUrlState } from './hooks/useUrlState'
 
 export default function App() {
   const [chatOpen, setChatOpen] = useState(false)
+  const [view, setView] = useUrlState('view', 'dashboard')
 
   useEffect(() => {
     if (!chatOpen) return
@@ -15,7 +20,7 @@ export default function App() {
   }, [chatOpen])
 
   return (
-    <div className="flex min-h-screen flex-col md:flex-row">
+    <div className="flex h-screen flex-col overflow-hidden md:flex-row">
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-neutral-900 focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-white dark:focus:bg-neutral-100 dark:focus:text-neutral-900"
@@ -23,12 +28,20 @@ export default function App() {
         Skip to main content
       </a>
 
-      <main id="main-content" className="flex-1 overflow-y-auto">
-        <Dashboard />
+      {/* Fixed-height shell: main and the chat aside each scroll internally
+          via their own overflow, instead of the browser scrolling the whole
+          page (which used to drag the chat pane along with the dashboard). */}
+      <main className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        <ViewTabs view={view} onViewChange={setView} />
+        <div id="main-content" className="flex-1 overflow-y-auto">
+          {view === 'dashboard' && <Dashboard />}
+          {view === 'calendar' && <CalendarView />}
+          {view === 'archive' && <ArchiveView />}
+        </div>
       </main>
 
       {/* Desktop: docked side panel */}
-      <aside className="hidden w-96 shrink-0 border-l border-neutral-200 md:flex md:flex-col dark:border-neutral-800">
+      <aside className="hidden w-96 shrink-0 flex-col overflow-hidden border-l border-neutral-200 md:flex dark:border-neutral-800">
         <ChatPanel />
       </aside>
 

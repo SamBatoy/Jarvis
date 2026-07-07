@@ -29,7 +29,8 @@ create table if not exists goals (
   why_it_matters text,
   target_date date,
   status text not null default 'active' check (status in ('active', 'achieved', 'abandoned')),
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  achieved_at timestamptz -- set when status transitions to 'achieved'; drives the chronological Archive/Done view
 );
 
 -- ─── todos ──────────────────────────────────────────────────────────────────
@@ -47,13 +48,20 @@ create table if not exists todos (
     'study', 'presentation', 'problem-set', 'exam-prep', 'reading',
     'build-feature', 'design', 'debug', 'deploy', 'ship', 'general'
   )),
-  parent_todo_id uuid references todos(id) on delete cascade
+  parent_todo_id uuid references todos(id) on delete cascade,
+  -- archiving: todos past their due date auto-archive daily (cron), or the
+  -- user can archive one manually early. reason distinguishes why it left
+  -- the active list: 'completed' | 'missed' (both auto, by due-date pass) | 'manual'
+  archived boolean not null default false,
+  archived_at timestamptz,
+  archive_reason text check (archive_reason in ('completed', 'missed', 'manual'))
 );
 
 create index if not exists todos_context_id_idx on todos(context_id);
 create index if not exists todos_goal_id_idx on todos(goal_id);
 create index if not exists todos_parent_todo_id_idx on todos(parent_todo_id);
 create index if not exists todos_due_date_idx on todos(due_date);
+create index if not exists todos_archived_idx on todos(archived);
 
 -- ─── events ─────────────────────────────────────────────────────────────────
 create table if not exists events (
@@ -93,3 +101,18 @@ create table if not exists learning_paths (
   skills jsonb not null default '[]'
   -- skills: [{ name, description, done, resources: [{ title, url, type }] }, ...]
 );
+
+-- ─── action_log ─────────────────────────────────────────────────────────────
+-- Trust & Control Layer: a visible record of what Jarvis did and why,
+-- covering confirmed writes (chat + dashboard) and automated actions (cron).
+create table if not exists action_log (
+  id uuid primary key default gen_random_uuid(),
+  action text not null,
+  summary text not null,
+  source text not null check (source in ('chat', 'dashboard', 'auto')),
+  entity_type text,
+  entity_id uuid,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists action_log_created_at_idx on action_log(created_at desc);

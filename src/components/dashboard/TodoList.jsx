@@ -52,7 +52,7 @@ export default function TodoList({ contextsById, domain, contextId, onEditTodo }
       {filtered.length === 0 ? (
         <p className="text-sm text-neutral-500">Nothing here — you’re clear.</p>
       ) : (
-        <ul className="rounded-xl border border-neutral-200 px-3 dark:border-neutral-800">
+        <ul className="max-h-[360px] overflow-y-auto rounded-xl border border-neutral-200 px-3 dark:border-neutral-800">
           {filtered.map((todo) => (
             <TodoItem
               key={todo.id}

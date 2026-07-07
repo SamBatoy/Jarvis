@@ -21,7 +21,7 @@ export default function MessageList({ messages }) {
             )}
           >
             {m.content}
-            {m.proposal && <ProposalCard proposal={m.proposal} />}
+            {m.proposal && <ProposalCard proposal={m.proposal} source="chat" />}
           </div>
         </div>
       ))}

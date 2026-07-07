@@ -33,6 +33,10 @@ export const listTodosSchema = z.object({
   topLevelOnly: z.boolean().optional().describe('If true, only return todos with no parent (exclude scaffolded subtasks).'),
   dueBefore: isoDatetime().optional(),
   dueAfter: isoDatetime().optional(),
+  includeArchived: z
+    .boolean()
+    .optional()
+    .describe('By default archived todos are excluded. Set true only if the user is explicitly asking about archived/past items.'),
 })
 
 export const listEventsSchema = z.object({
@@ -71,6 +75,11 @@ export const todoFieldsSchema = z.object({
   context_id: uuid().nullable().optional(),
   goal_id: uuid().nullable().optional(),
   task_type: z.enum(TASK_TYPES).nullable().optional(),
+  // Unarchive-only: restoring from Archive is a direct (no-confirm) action,
+  // but archiving itself must go through propose_archive_todo's confirm
+  // step — literal(false) means this direct tool can never be used to
+  // archive something, only ever to restore it.
+  archived: z.literal(false).optional(),
 })
 
 export const updateTodoSchema = z.object({ id: uuid(), fields: todoFieldsSchema })
@@ -213,7 +222,14 @@ export const contextPreviewSchema = z.object({
   status: z.enum(PROJECT_STATUSES).nullable().optional(),
 })
 
-export const ENTITY_TABLES = { todo: 'todos', event: 'events', deadline: 'deadlines', goal: 'goals', context: 'contexts' }
+export const ENTITY_TABLES = {
+  todo: 'todos',
+  event: 'events',
+  deadline: 'deadlines',
+  goal: 'goals',
+  context: 'contexts',
+  learning_path: 'learning_paths',
+}
 
 export const proposeDeleteSchema = z.object({
   entityType: z.enum(Object.keys(ENTITY_TABLES)),
@@ -246,4 +262,14 @@ const skillSchema = z.object({
 export const learningPathPreviewSchema = z.object({
   topic: z.string().min(1),
   skills: z.array(skillSchema).min(1),
+})
+
+export const proposeArchiveTodoSchema = z.object({
+  id: uuid().describe('The todo to archive early, ahead of its deadline.'),
+})
+
+export const archiveTodoPreviewSchema = z.object({
+  id: uuid(),
+  title: z.string().min(1),
+  due_date: isoDatetime().nullable(),
 })
