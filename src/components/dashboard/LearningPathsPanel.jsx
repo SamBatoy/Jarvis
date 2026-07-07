@@ -5,6 +5,7 @@ import { useContexts } from '../../hooks/useContexts'
 import ProposalCard from '../chat/ProposalCard'
 import ConfirmDeleteButton from './forms/ConfirmDeleteButton'
 import TurnSkillIntoTodosModal from './TurnSkillIntoTodosModal'
+import { isStuck } from '../../lib/stuckDetection'
 
 function GeneratePathForm() {
   const [topic, setTopic] = useState('')
@@ -82,6 +83,7 @@ export default function LearningPathsPanel() {
   const updatePath = useUpdateLearningPath()
   const queryClient = useQueryClient()
   const [turnIntoTodosTarget, setTurnIntoTodosTarget] = useState(null) // { skill, path }
+  const [dismissedStuckIds, setDismissedStuckIds] = useState(() => new Set())
 
   function toggleSkill(path, skillIndex) {
     const skills = path.skills.map((s, i) => (i === skillIndex ? { ...s, done: !s.done } : s))
@@ -108,7 +110,12 @@ export default function LearningPathsPanel() {
       )}
       {!isLoading && paths?.length > 0 && (
         <ul className="max-h-[360px] space-y-3 overflow-y-auto">
-          {paths.map((path) => (
+          {paths.map((path) => {
+            const stuck =
+              path.status === 'active' &&
+              !dismissedStuckIds.has(path.id) &&
+              isStuck({ lastActivityAt: path.updated_at ?? path.created_at, isComplete: path.skills.every((s) => s.done) })
+            return (
             <li key={path.id} className="rounded-xl border border-neutral-200 p-3 dark:border-neutral-800">
               <div className="flex items-center justify-between gap-2">
                 <h3 className="text-sm font-semibold">{path.topic}</h3>
@@ -117,6 +124,42 @@ export default function LearningPathsPanel() {
                   onConfirm={() => proposeAndCommitDelete('learning_path', path.id, queryClient)}
                 />
               </div>
+              {stuck && (
+                <div className="mt-1.5 flex items-center gap-2 text-xs text-amber-700 dark:text-amber-400">
+                  <span>⚠ No progress in a while —</span>
+                  <button
+                    onClick={() => setDismissedStuckIds((prev) => new Set(prev).add(path.id))}
+                    className="font-medium hover:underline"
+                  >
+                    Continue
+                  </button>
+                  <span>·</span>
+                  <button
+                    onClick={() => updatePath.mutate({ id: path.id, fields: { status: 'paused' } })}
+                    className="font-medium hover:underline"
+                  >
+                    Pause
+                  </button>
+                  <span>·</span>
+                  <button
+                    onClick={() => proposeAndCommitDelete('learning_path', path.id, queryClient)}
+                    className="font-medium hover:underline"
+                  >
+                    Delete
+                  </button>
+                </div>
+              )}
+              {path.status === 'paused' && (
+                <div className="mt-1.5 flex items-center gap-2 text-xs text-neutral-500">
+                  <span>Paused</span>
+                  <button
+                    onClick={() => updatePath.mutate({ id: path.id, fields: { status: 'active' } })}
+                    className="font-medium text-blue-600 hover:underline dark:text-blue-400"
+                  >
+                    Resume
+                  </button>
+                </div>
+              )}
               <ul className="mt-2 space-y-1.5">
                 {path.skills.map((skill, i) => (
                   <li key={skill.name} className="text-sm">
@@ -161,7 +204,8 @@ export default function LearningPathsPanel() {
                 ))}
               </ul>
             </li>
-          ))}
+            )
+          })}
         </ul>
       )}
 

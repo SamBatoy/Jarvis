@@ -1,20 +1,27 @@
 import { useMemo } from 'react'
 import { useGoals } from '../../hooks/useGoals'
-import { useTodos } from '../../hooks/useTodos'
+import { useAllTodosForAnalytics } from '../../hooks/useTodos'
 import { formatDate } from '../../lib/dateUtils'
+import { computeGoalHealth, formatMinutes } from '../../lib/goalHealth'
+
+const MOMENTUM_STYLES = {
+  dropped: 'text-amber-700 dark:text-amber-400',
+  stale: 'text-red-600 dark:text-red-400',
+}
+const MOMENTUM_LABELS = { dropped: 'Momentum dropped', stale: 'Gone stale' }
 
 export default function GoalsPanel() {
   const { data: goals, isLoading, error } = useGoals({ status: 'active' })
-  const { data: todos } = useTodos()
+  // All todos regardless of archived state — a completed-then-archived
+  // todo should still count toward this goal's progress and time invested.
+  const { data: todos } = useAllTodosForAnalytics()
 
-  const progressByGoal = useMemo(() => {
+  const todosByGoal = useMemo(() => {
     const map = new Map()
     for (const t of todos ?? []) {
       if (!t.goal_id) continue
-      const entry = map.get(t.goal_id) ?? { done: 0, total: 0 }
-      entry.total += 1
-      if (t.done) entry.done += 1
-      map.set(t.goal_id, entry)
+      if (!map.has(t.goal_id)) map.set(t.goal_id, [])
+      map.get(t.goal_id).push(t)
     }
     return map
   }, [todos])
@@ -32,8 +39,10 @@ export default function GoalsPanel() {
       ) : (
         <ul className="max-h-[320px] space-y-3 overflow-y-auto">
           {goals.map((g) => {
-            const progress = progressByGoal.get(g.id)
-            const pct = progress && progress.total > 0 ? Math.round((progress.done / progress.total) * 100) : 0
+            const linkedTodos = todosByGoal.get(g.id) ?? []
+            const health = computeGoalHealth(g, linkedTodos)
+            const pct = health.total > 0 ? Math.round((health.completed / health.total) * 100) : 0
+            const timeLabel = formatMinutes(health.timeInvestedMinutes)
             return (
               <li key={g.id} className="rounded-xl border border-neutral-200 p-3 dark:border-neutral-800">
                 <div className="flex items-center justify-between">
@@ -41,7 +50,7 @@ export default function GoalsPanel() {
                   {g.target_date && <span className="text-xs text-neutral-500">by {formatDate(g.target_date)}</span>}
                 </div>
                 {g.why_it_matters && <p className="mt-1 text-xs text-neutral-500">{g.why_it_matters}</p>}
-                {progress && progress.total > 0 && (
+                {health.total > 0 && (
                   <div className="mt-2">
                     <div
                       role="progressbar"
@@ -54,8 +63,14 @@ export default function GoalsPanel() {
                       <div className="h-full rounded-full bg-emerald-500" style={{ width: `${pct}%` }} />
                     </div>
                     <p className="mt-1 text-xs text-neutral-500">
-                      {progress.done}/{progress.total} tasks done
+                      {health.completed}/{health.total} tasks done
+                      {timeLabel && ` · ${timeLabel} invested`}
                     </p>
+                    {MOMENTUM_LABELS[health.momentum] && (
+                      <p className={`mt-1 text-xs font-medium ${MOMENTUM_STYLES[health.momentum]}`}>
+                        {MOMENTUM_LABELS[health.momentum]}
+                      </p>
+                    )}
                   </div>
                 )}
               </li>

@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import clsx from 'clsx'
 import ContextBadge from './ContextBadge'
+import BreakTodoIntoStepsModal from './BreakTodoIntoStepsModal'
 import { formatDate } from '../../lib/dateUtils'
 import { useUpdateTodo } from '../../hooks/useTodos'
 import { computePriorityScore, suggestedPriorityLabel } from '../../lib/priorityScore'
+import { isStuck } from '../../lib/stuckDetection'
 
 const PRIORITY_STYLES = {
   high: 'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300',
@@ -64,11 +66,51 @@ function MarkDoneStrip({ todo, onDismiss }) {
   )
 }
 
+// Both actions are user-initiated from the badge, never automatic.
+function StuckActions({ todo }) {
+  const [breakingIntoSteps, setBreakingIntoSteps] = useState(false)
+  const [quickStart, setQuickStart] = useState(null) // null | 'loading' | string
+
+  async function handleQuickStart() {
+    setQuickStart('loading')
+    try {
+      const res = await fetch('/api/quick-start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: todo.title, notes: todo.notes, taskType: todo.task_type }),
+      })
+      const { suggestion } = await res.json()
+      setQuickStart(suggestion)
+    } catch {
+      setQuickStart('Could not get a suggestion right now — try again in a moment.')
+    }
+  }
+
+  return (
+    <div className="ml-7 pb-2 text-xs">
+      <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400">
+        <span>⚠ No activity in a while —</span>
+        <button onClick={() => setBreakingIntoSteps(true)} className="font-medium hover:underline">
+          Break into steps
+        </button>
+        <span>·</span>
+        <button onClick={handleQuickStart} className="font-medium hover:underline">
+          Quick-start suggestion
+        </button>
+      </div>
+      {quickStart === 'loading' && <p className="mt-1 text-neutral-500">Thinking…</p>}
+      {quickStart && quickStart !== 'loading' && <p className="mt-1 text-neutral-600 dark:text-neutral-400">{quickStart}</p>}
+      {breakingIntoSteps && <BreakTodoIntoStepsModal todo={todo} onClose={() => setBreakingIntoSteps(false)} />}
+    </div>
+  )
+}
+
 function Row({ todo, context, onEdit, childCount = 0 }) {
   const updateTodo = useUpdateTodo()
   const [showMarkDonePrompt, setShowMarkDonePrompt] = useState(false)
   const suggested = suggestedPriorityLabel(computePriorityScore(todo, { childCount }))
   const showSuggestion = !todo.done && suggested !== todo.priority
+  const stuck = isStuck({ lastActivityAt: todo.updated_at ?? todo.created_at, isComplete: todo.done })
 
   return (
     <div>
@@ -107,6 +149,7 @@ function Row({ todo, context, onEdit, childCount = 0 }) {
         <ContextBadge context={context} />
       </div>
       {showMarkDonePrompt && <MarkDoneStrip todo={todo} onDismiss={() => setShowMarkDonePrompt(false)} />}
+      {stuck && !showMarkDonePrompt && <StuckActions todo={todo} />}
     </div>
   )
 }

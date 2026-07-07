@@ -17,6 +17,7 @@ import { getTodayOverview } from './overview.js'
 import { proposeScaffold, commitScaffold } from './scaffold.js'
 import { proposeDelete, commitDelete } from './deleteEntity.js'
 import { proposeBatchUpdate, commitBatchUpdate } from './batchUpdate.js'
+import { proposeWeeklyRebalance } from './loadBalancer.js'
 
 // Recursively strips JSON-schema `format` keywords (uuid, date-time, ...).
 // See the comment in schemas.js: some OpenAI-compatible providers (Groq
@@ -220,6 +221,14 @@ export const TOOLS = {
     schemas.proposeBatchUpdateSchema,
     'propose',
     proposeBatchUpdate,
+    { previewSchema: schemas.batchUpdatePreviewSchema, commit: commitBatchUpdate }
+  ),
+  propose_weekly_rebalance: def(
+    'propose_weekly_rebalance',
+    'Analyze the upcoming 7 days of due todos for overload (using estimated_minutes where set) and propose moving some lower-priority, more-flexible tasks off overloaded days onto lighter ones. Takes no arguments — it figures out what to move itself. Returns the SAME combined batch preview shape as propose_batch_update for a single Confirm/Cancel. If the week already looks balanced, it reports that instead of proposing anything. Use this when the user says things like "balance my week" or "I\'m overloaded this week."',
+    schemas.proposeWeeklyRebalanceSchema,
+    'propose',
+    proposeWeeklyRebalance,
     { previewSchema: schemas.batchUpdatePreviewSchema, commit: commitBatchUpdate }
   ),
 }

@@ -83,6 +83,9 @@ export const todoFieldsSchema = z.object({
   // Optional both at creation and again at completion — never required.
   estimated_minutes: z.number().int().positive().nullable().optional(),
   actual_minutes: z.number().int().positive().nullable().optional(),
+  // Missed Deadline Analysis: one categorical reason, set from the Night
+  // Review batch prompt (or by chat, if the user mentions why in passing).
+  missed_reason: z.enum(['too_hard', 'forgot', 'poor_estimate', 'other']).nullable().optional(),
 })
 
 export const updateTodoSchema = z.object({ id: uuid(), fields: todoFieldsSchema })
@@ -310,3 +313,8 @@ export const batchUpdatePreviewSchema = z.object({
   summary: z.string().min(1),
   changes: z.array(batchChangePreviewSchema).min(1).max(50),
 })
+
+// Weekly Load Balancing: fully automatic analysis, no user-provided args —
+// reuses batchUpdatePreviewSchema directly since it just calls
+// proposeBatchUpdate internally once it's computed which todos to move.
+export const proposeWeeklyRebalanceSchema = z.object({})

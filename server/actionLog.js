@@ -60,8 +60,10 @@ export function summarizeCommit(toolName, result) {
     case 'propose_archive_todo':
       return { action: 'archive_todo', summary: `Archived "${result.title}"`, entityType: 'todo', entityId: result.id }
     case 'propose_batch_update':
+    case 'propose_weekly_rebalance':
       // One combined log entry for the whole batch, not one per row — a
-      // readable audit trail, not noise.
+      // readable audit trail, not noise. Same shape for both since
+      // propose_weekly_rebalance just calls proposeBatchUpdate internally.
       return {
         action: 'batch_update',
         summary: `${result.summary} (${result.updated.length} item${result.updated.length === 1 ? '' : 's'})`,

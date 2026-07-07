@@ -13,6 +13,7 @@ import DeadlineForm from './forms/DeadlineForm'
 import GoalForm from './forms/GoalForm'
 import ContextForm from './forms/ContextForm'
 import FocusMode from '../focus/FocusMode'
+import ProposalCard from '../chat/ProposalCard'
 import { useContexts } from '../../hooks/useContexts'
 import { useEvents } from '../../hooks/useEvents'
 import { useGoals } from '../../hooks/useGoals'
@@ -27,11 +28,33 @@ export default function Dashboard() {
   const [contextId, setContextId] = useUrlState('context', null)
   const [modal, setModal] = useState(null) // { type: 'todo'|'event'|'deadline'|'goal'|'context', item? }
   const [focusModeOpen, setFocusModeOpen] = useState(false)
+  const [rebalance, setRebalance] = useState(null) // null | 'loading' | { proposal } | { message }
 
   const contextsById = useMemo(() => new Map((contexts ?? []).map((c) => [c.id, c])), [contexts])
 
   function closeModal() {
     setModal(null)
+  }
+
+  async function handleBalanceWeek() {
+    setRebalance('loading')
+    try {
+      const res = await fetch('/api/propose', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ toolName: 'propose_weekly_rebalance', args: {} }),
+      })
+      const body = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        // A "no changes needed" week is good news, not a failure — show it
+        // the same friendly way either way.
+        setRebalance({ message: body.error || 'Request failed' })
+        return
+      }
+      setRebalance({ proposal: { toolName: 'propose_weekly_rebalance', preview: body.preview } })
+    } catch (e) {
+      setRebalance({ message: e.message })
+    }
   }
 
   if (contextsLoading) return <p className="p-6 text-sm text-neutral-500">Loading dashboard…</p>
@@ -53,8 +76,22 @@ export default function Dashboard() {
           >
             Focus Mode
           </button>
+          <button
+            onClick={handleBalanceWeek}
+            disabled={rebalance === 'loading'}
+            className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm font-medium hover:bg-neutral-100 disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-800"
+          >
+            {rebalance === 'loading' ? 'Checking week…' : 'Balance my week'}
+          </button>
         </div>
       </header>
+
+      {rebalance && rebalance !== 'loading' && (
+        <div className="rounded-lg border border-neutral-200 p-3 dark:border-neutral-800">
+          {rebalance.message && <p className="text-sm text-neutral-600 dark:text-neutral-400">{rebalance.message}</p>}
+          {rebalance.proposal && <ProposalCard proposal={rebalance.proposal} source="dashboard" />}
+        </div>
+      )}
 
       <FilterBar
         contexts={contexts ?? []}

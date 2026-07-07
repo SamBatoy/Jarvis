@@ -61,7 +61,11 @@ create table if not exists todos (
   -- the real completion moment, since the archive cron runs once daily).
   estimated_minutes integer,
   actual_minutes integer,
-  completed_at timestamptz
+  completed_at timestamptz,
+  -- Phase 4: real last-activity signal for stuck detection, and one
+  -- categorical reason per missed todo (asked once in a Night Review batch).
+  updated_at timestamptz not null default now(),
+  missed_reason text check (missed_reason in ('too_hard', 'forgot', 'poor_estimate', 'other'))
 );
 
 create index if not exists todos_context_id_idx on todos(context_id);
@@ -70,6 +74,20 @@ create index if not exists todos_parent_todo_id_idx on todos(parent_todo_id);
 create index if not exists todos_due_date_idx on todos(due_date);
 create index if not exists todos_archived_idx on todos(archived);
 create index if not exists todos_completed_at_idx on todos(completed_at);
+create index if not exists todos_updated_at_idx on todos(updated_at);
+
+-- Shared by todos and learning_paths.
+create or replace function set_updated_at()
+returns trigger as $$
+begin
+  new.updated_at := now();
+  return new;
+end;
+$$ language plpgsql;
+
+drop trigger if exists todos_set_updated_at on todos;
+create trigger todos_set_updated_at before update on todos
+  for each row execute function set_updated_at();
 
 -- done can be toggled from two independent code paths (dashboard checkbox,
 -- chat's update_todo), so a trigger is the single source of truth for
@@ -127,9 +145,17 @@ create table if not exists learning_paths (
   id uuid primary key default gen_random_uuid(),
   topic text not null,
   created_at timestamptz not null default now(),
-  skills jsonb not null default '[]'
+  skills jsonb not null default '[]',
   -- skills: [{ name, description, done, resources: [{ title, url, type }] }, ...]
+  -- Phase 4: real last-activity signal for stuck detection, and a real
+  -- paused state so a dismissed stuck-path notice actually stops recurring.
+  updated_at timestamptz not null default now(),
+  status text not null default 'active' check (status in ('active', 'paused'))
 );
+
+drop trigger if exists learning_paths_set_updated_at on learning_paths;
+create trigger learning_paths_set_updated_at before update on learning_paths
+  for each row execute function set_updated_at();
 
 -- ─── action_log ─────────────────────────────────────────────────────────────
 -- Trust & Control Layer: a visible record of what Jarvis did and why,
