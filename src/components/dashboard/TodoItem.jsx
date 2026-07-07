@@ -13,41 +13,100 @@ const PRIORITY_STYLES = {
 
 const SUGGESTION_ARROW = { high: '↑', medium: '·', low: '↓' }
 
+// Not a blocking modal — done:true has already been written by the checkbox
+// itself by the time this shows, so Dismiss loses nothing. Only asks for
+// what's missing: actual minutes always, plus a retroactive estimate if the
+// task never got one.
+function MarkDoneStrip({ todo, onDismiss }) {
+  const updateTodo = useUpdateTodo()
+  const [actualMinutes, setActualMinutes] = useState('')
+  const [estimatedMinutes, setEstimatedMinutes] = useState('')
+
+  function handleSave() {
+    const fields = {}
+    if (actualMinutes !== '') fields.actual_minutes = Number(actualMinutes)
+    if (estimatedMinutes !== '') fields.estimated_minutes = Number(estimatedMinutes)
+    if (Object.keys(fields).length > 0) updateTodo.mutate({ id: todo.id, fields })
+    onDismiss()
+  }
+
+  return (
+    <div className="ml-7 flex flex-wrap items-center gap-2 pb-2 text-xs text-neutral-500">
+      <span>How long did it take?</span>
+      <input
+        type="number"
+        min="1"
+        placeholder="Actual min"
+        value={actualMinutes}
+        onChange={(e) => setActualMinutes(e.target.value)}
+        className="w-24 rounded border border-neutral-300 px-2 py-1 dark:border-neutral-700 dark:bg-neutral-800"
+      />
+      {!todo.estimated_minutes && (
+        <input
+          type="number"
+          min="1"
+          placeholder="Estimated min"
+          value={estimatedMinutes}
+          onChange={(e) => setEstimatedMinutes(e.target.value)}
+          className="w-28 rounded border border-neutral-300 px-2 py-1 dark:border-neutral-700 dark:bg-neutral-800"
+        />
+      )}
+      <button
+        onClick={handleSave}
+        className="rounded bg-neutral-900 px-2 py-1 font-medium text-white dark:bg-neutral-100 dark:text-neutral-900"
+      >
+        Save
+      </button>
+      <button onClick={onDismiss} className="rounded px-2 py-1 hover:bg-neutral-100 dark:hover:bg-neutral-800">
+        Dismiss
+      </button>
+    </div>
+  )
+}
+
 function Row({ todo, context, onEdit, childCount = 0 }) {
   const updateTodo = useUpdateTodo()
+  const [showMarkDonePrompt, setShowMarkDonePrompt] = useState(false)
   const suggested = suggestedPriorityLabel(computePriorityScore(todo, { childCount }))
   const showSuggestion = !todo.done && suggested !== todo.priority
 
   return (
-    <div className="flex items-center gap-3 py-2">
-      <input
-        type="checkbox"
-        checked={todo.done}
-        onChange={(e) => updateTodo.mutate({ id: todo.id, fields: { done: e.target.checked } })}
-        aria-label={`Mark "${todo.title}" ${todo.done ? 'not done' : 'done'}`}
-        className="h-4 w-4 shrink-0 rounded border-neutral-300 accent-neutral-900 dark:accent-neutral-100"
-      />
-      <button
-        onClick={() => onEdit?.(todo)}
-        className={clsx('min-w-0 flex-1 truncate text-left text-sm', todo.done && 'text-neutral-400 line-through')}
-      >
-        {todo.title}
-      </button>
-      {showSuggestion && (
-        <span
-          title={`Smart Priority suggests: ${suggested}`}
-          className="shrink-0 text-xs font-medium text-blue-600 dark:text-blue-400"
+    <div>
+      <div className="flex items-center gap-3 py-2">
+        <input
+          type="checkbox"
+          checked={todo.done}
+          onChange={(e) => {
+            const checked = e.target.checked
+            updateTodo.mutate({ id: todo.id, fields: { done: checked } })
+            if (checked) setShowMarkDonePrompt(true)
+          }}
+          aria-label={`Mark "${todo.title}" ${todo.done ? 'not done' : 'done'}`}
+          className="h-4 w-4 shrink-0 rounded border-neutral-300 accent-neutral-900 dark:accent-neutral-100"
+        />
+        <button
+          onClick={() => onEdit?.(todo)}
+          className={clsx('min-w-0 flex-1 truncate text-left text-sm', todo.done && 'text-neutral-400 line-through')}
         >
-          {SUGGESTION_ARROW[suggested]} suggested: {suggested}
-        </span>
-      )}
-      {todo.priority && (
-        <span className={clsx('rounded px-1.5 py-0.5 text-xs font-medium', PRIORITY_STYLES[todo.priority])}>
-          {todo.priority}
-        </span>
-      )}
-      {todo.due_date && <span className="shrink-0 text-xs text-neutral-500">{formatDate(todo.due_date)}</span>}
-      <ContextBadge context={context} />
+          {todo.title}
+        </button>
+        {showSuggestion && (
+          <span
+            title={`Smart Priority suggests: ${suggested}`}
+            className="shrink-0 text-xs font-medium text-blue-600 dark:text-blue-400"
+          >
+            {SUGGESTION_ARROW[suggested]} suggested: {suggested}
+          </span>
+        )}
+        {todo.priority && (
+          <span className={clsx('rounded px-1.5 py-0.5 text-xs font-medium', PRIORITY_STYLES[todo.priority])}>
+            {todo.priority}
+          </span>
+        )}
+        {todo.due_date && <span className="shrink-0 text-xs text-neutral-500">{formatDate(todo.due_date)}</span>}
+        <ContextBadge context={context} />
+      </div>
+      {showMarkDonePrompt && <MarkDoneStrip todo={todo} onDismiss={() => setShowMarkDonePrompt(false)} />}
     </div>
   )
 }

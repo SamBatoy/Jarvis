@@ -54,7 +54,14 @@ create table if not exists todos (
   -- the active list: 'completed' | 'missed' (both auto, by due-date pass) | 'manual'
   archived boolean not null default false,
   archived_at timestamptz,
-  archive_reason text check (archive_reason in ('completed', 'missed', 'manual'))
+  archive_reason text check (archive_reason in ('completed', 'missed', 'manual')),
+  -- Phase 3 personalization: optional time estimate/actual, settable at
+  -- creation or completion. completed_at is set by a trigger below and is
+  -- deliberately distinct from archived_at (archiving lags up to 24h behind
+  -- the real completion moment, since the archive cron runs once daily).
+  estimated_minutes integer,
+  actual_minutes integer,
+  completed_at timestamptz
 );
 
 create index if not exists todos_context_id_idx on todos(context_id);
@@ -62,6 +69,28 @@ create index if not exists todos_goal_id_idx on todos(goal_id);
 create index if not exists todos_parent_todo_id_idx on todos(parent_todo_id);
 create index if not exists todos_due_date_idx on todos(due_date);
 create index if not exists todos_archived_idx on todos(archived);
+create index if not exists todos_completed_at_idx on todos(completed_at);
+
+-- done can be toggled from two independent code paths (dashboard checkbox,
+-- chat's update_todo), so a trigger is the single source of truth for
+-- completed_at rather than threading it through both.
+create or replace function set_todo_completed_at()
+returns trigger as $$
+begin
+  if new.done = true and (old.done is distinct from true) then
+    new.completed_at := now();
+  elsif new.done = false then
+    new.completed_at := null;
+  end if;
+  return new;
+end;
+$$ language plpgsql;
+
+drop trigger if exists todos_set_completed_at on todos;
+create trigger todos_set_completed_at
+  before insert or update on todos
+  for each row
+  execute function set_todo_completed_at();
 
 -- ─── events ─────────────────────────────────────────────────────────────────
 create table if not exists events (

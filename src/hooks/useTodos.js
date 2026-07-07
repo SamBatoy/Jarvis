@@ -17,6 +17,14 @@ export function useTodos(filters = {}) {
   }, [filters.contextId ?? null, filters.done ?? null, filters.parentTodoId ?? null, archived])
 }
 
+// Analytics needs every todo regardless of archived state — a todo can be
+// done with a real completed_at before the next archive-cron run marks it
+// archived. Small dataset for a single-user app, so no server-side
+// aggregation needed.
+export function useAllTodosForAnalytics() {
+  return table.useList(undefined, ['analytics-all'])
+}
+
 export function useCreateTodo() {
   return table.useCreate()
 }

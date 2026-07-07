@@ -80,6 +80,9 @@ export const todoFieldsSchema = z.object({
   // step — literal(false) means this direct tool can never be used to
   // archive something, only ever to restore it.
   archived: z.literal(false).optional(),
+  // Optional both at creation and again at completion — never required.
+  estimated_minutes: z.number().int().positive().nullable().optional(),
+  actual_minutes: z.number().int().positive().nullable().optional(),
 })
 
 export const updateTodoSchema = z.object({ id: uuid(), fields: todoFieldsSchema })
@@ -170,6 +173,7 @@ export const proposeCreateTodoSchema = z.object({
   context_id: uuid().nullable().optional(),
   goal_id: uuid().nullable().optional(),
   task_type: z.enum(TASK_TYPES).nullable().optional(),
+  estimated_minutes: z.number().int().positive().nullable().optional(),
 })
 
 export const proposeCreateEventSchema = z.object({

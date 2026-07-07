@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import Dashboard from './components/dashboard/Dashboard'
 import CalendarView from './components/calendar/CalendarView'
 import ArchiveView from './components/archive/ArchiveView'
+import AnalyticsView from './components/analytics/AnalyticsView'
 import ChatPanel from './components/chat/ChatPanel'
 import ViewTabs from './components/ViewTabs'
 import { useUrlState } from './hooks/useUrlState'
@@ -37,6 +38,7 @@ export default function App() {
           {view === 'dashboard' && <Dashboard />}
           {view === 'calendar' && <CalendarView />}
           {view === 'archive' && <ArchiveView />}
+          {view === 'analytics' && <AnalyticsView />}
         </div>
       </main>
 

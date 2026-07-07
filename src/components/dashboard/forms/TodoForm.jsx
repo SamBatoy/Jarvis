@@ -2,6 +2,8 @@ import { useState } from 'react'
 import Modal from '../../Modal'
 import ConfirmDeleteButton from './ConfirmDeleteButton'
 import { useCreateTodo, useUpdateTodo, useDeleteTodo } from '../../../hooks/useTodos'
+import { useEstimateHistory } from '../../../hooks/useEstimateHistory'
+import { computeEstimateBias } from '../../../lib/estimateBias'
 import { toLocalInputValue, fromLocalInputValue } from '../../../lib/dateUtils'
 
 const TASK_TYPES = [
@@ -18,12 +20,16 @@ export default function TodoForm({ todo, contexts, goals, onClose }) {
   const [contextId, setContextId] = useState(todo?.context_id ?? '')
   const [goalId, setGoalId] = useState(todo?.goal_id ?? '')
   const [taskType, setTaskType] = useState(todo?.task_type ?? '')
+  const [estimatedMinutes, setEstimatedMinutes] = useState(todo?.estimated_minutes ?? '')
 
   const createTodo = useCreateTodo()
   const updateTodo = useUpdateTodo()
   const deleteTodo = useDeleteTodo()
   const saving = createTodo.isPending || updateTodo.isPending
   const saveError = createTodo.error || updateTodo.error
+
+  const { data: estimateHistory } = useEstimateHistory()
+  const bias = taskType ? computeEstimateBias(estimateHistory ?? [], taskType) : null
 
   function handleSubmit(e) {
     e.preventDefault()
@@ -35,6 +41,7 @@ export default function TodoForm({ todo, contexts, goals, onClose }) {
       context_id: contextId || null,
       goal_id: goalId || null,
       task_type: taskType || null,
+      estimated_minutes: estimatedMinutes === '' ? null : Number(estimatedMinutes),
     }
     if (!fields.title) return
     if (isEdit) {
@@ -134,6 +141,17 @@ export default function TodoForm({ todo, contexts, goals, onClose }) {
               </option>
             ))}
           </select>
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium">Estimated minutes (optional)</label>
+          <input
+            type="number"
+            min="1"
+            value={estimatedMinutes}
+            onChange={(e) => setEstimatedMinutes(e.target.value)}
+            className="w-full rounded-md border border-neutral-300 px-3 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-800"
+          />
+          {bias && <p className="mt-1 text-xs text-neutral-500">{bias.message}</p>}
         </div>
         {saveError && (
           <p role="alert" className="text-xs text-red-600 dark:text-red-400">

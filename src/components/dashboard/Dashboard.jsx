@@ -12,6 +12,7 @@ import EventForm from './forms/EventForm'
 import DeadlineForm from './forms/DeadlineForm'
 import GoalForm from './forms/GoalForm'
 import ContextForm from './forms/ContextForm'
+import FocusMode from '../focus/FocusMode'
 import { useContexts } from '../../hooks/useContexts'
 import { useEvents } from '../../hooks/useEvents'
 import { useGoals } from '../../hooks/useGoals'
@@ -25,6 +26,7 @@ export default function Dashboard() {
   const [domain, setDomain] = useUrlState('domain', 'all')
   const [contextId, setContextId] = useUrlState('context', null)
   const [modal, setModal] = useState(null) // { type: 'todo'|'event'|'deadline'|'goal'|'context', item? }
+  const [focusModeOpen, setFocusModeOpen] = useState(false)
 
   const contextsById = useMemo(() => new Map((contexts ?? []).map((c) => [c.id, c])), [contexts])
 
@@ -45,6 +47,12 @@ export default function Dashboard() {
           <QuickAddButton label="+ Deadline" onClick={() => setModal({ type: 'deadline' })} />
           <QuickAddButton label="+ Goal" onClick={() => setModal({ type: 'goal' })} />
           <QuickAddButton label="+ Subject/Project" onClick={() => setModal({ type: 'context' })} />
+          <button
+            onClick={() => setFocusModeOpen(true)}
+            className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white dark:bg-neutral-100 dark:text-neutral-900"
+          >
+            Focus Mode
+          </button>
         </div>
       </header>
 
@@ -101,6 +109,7 @@ export default function Dashboard() {
       {modal?.type === 'context' && (
         <ContextForm context={modal.item} allContexts={contexts ?? []} onClose={closeModal} />
       )}
+      {focusModeOpen && <FocusMode onClose={() => setFocusModeOpen(false)} />}
     </div>
   )
 }

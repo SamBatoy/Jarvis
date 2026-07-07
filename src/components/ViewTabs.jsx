@@ -4,6 +4,7 @@ const VIEWS = [
   { key: 'dashboard', label: 'Dashboard' },
   { key: 'calendar', label: 'Calendar' },
   { key: 'archive', label: 'Archive' },
+  { key: 'analytics', label: 'Analytics' },
 ]
 
 export default function ViewTabs({ view, onViewChange }) {
