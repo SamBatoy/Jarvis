@@ -16,7 +16,7 @@ function formatElapsed(totalSeconds) {
 // other active task, and feeds the timer's elapsed time into actual_minutes
 // if the task is finished from here.
 export default function FocusMode({ onClose }) {
-  const { data: activeTodosRaw } = useTodos({ done: false })
+  const { data: activeTodosRaw, isLoading } = useTodos({ done: false })
   const activeTodos = activeTodosRaw ?? []
   const updateTodo = useUpdateTodo()
   const { on: soundOn, toggle: toggleSound } = useAmbientNoise()
@@ -113,7 +113,9 @@ export default function FocusMode({ onClose }) {
           </button>
         </div>
 
-        {!selectedTodo ? (
+        {isLoading ? (
+          <p className="text-center text-sm text-neutral-500">Loading tasks…</p>
+        ) : !selectedTodo ? (
           <p className="text-center text-sm text-neutral-500">No active tasks — nothing to focus on right now.</p>
         ) : (
           <>
