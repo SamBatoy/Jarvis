@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { useAllTodosForAnalytics } from '../../hooks/useTodos'
 import { useContexts } from '../../hooks/useContexts'
 import ContextBadge from '../dashboard/ContextBadge'
+import LoadingState from '../LoadingState'
 import { bestProductivityTime, completionRate, mostDelayedSubjects, weeklyTrends } from '../../lib/analytics'
 
 function Section({ title, children }) {
@@ -95,7 +96,18 @@ function WeeklyTrendsSection({ todos }) {
             <div className="flex w-full flex-1 flex-col justify-end overflow-hidden rounded-t bg-neutral-100 dark:bg-neutral-800" style={{ height: 96 }}>
               {w.total > 0 && (
                 <>
-                  <div className="w-full bg-red-400" style={{ height: `${(w.late / max) * 96}px` }} />
+                  {/* Diagonal hatch on top of the solid red fill — a
+                      non-color indicator alongside the red/green contrast,
+                      since color alone doesn't distinguish these two
+                      segments for colorblind users. */}
+                  <div
+                    className="w-full bg-red-400"
+                    style={{
+                      height: `${(w.late / max) * 96}px`,
+                      backgroundImage:
+                        'repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(255,255,255,0.4) 3px, rgba(255,255,255,0.4) 6px)',
+                    }}
+                  />
                   <div className="w-full bg-emerald-500" style={{ height: `${(w.onTime / max) * 96}px` }} />
                 </>
               )}
@@ -104,9 +116,17 @@ function WeeklyTrendsSection({ todos }) {
           </div>
         ))}
       </div>
-      <p className="mt-2 text-xs text-neutral-500">
-        <span className="text-emerald-600 dark:text-emerald-400">■</span> on-time &nbsp;
-        <span className="text-red-500">■</span> late/missed
+      <p className="mt-2 flex items-center gap-1.5 text-xs text-neutral-500">
+        <span className="inline-block h-2.5 w-2.5 rounded-sm bg-emerald-500" aria-hidden="true" /> on-time
+        <span
+          className="ml-2 inline-block h-2.5 w-2.5 rounded-sm bg-red-400"
+          style={{
+            backgroundImage:
+              'repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255,255,255,0.4) 2px, rgba(255,255,255,0.4) 4px)',
+          }}
+          aria-hidden="true"
+        />{' '}
+        late/missed
       </p>
     </Section>
   )
@@ -118,7 +138,7 @@ export default function AnalyticsView() {
   const contextsById = useMemo(() => new Map((contexts ?? []).map((c) => [c.id, c])), [contexts])
   const todos = todosRaw ?? []
 
-  if (isLoading) return <p className="p-6 text-sm text-neutral-500">Loading analytics…</p>
+  if (isLoading) return <div className="p-6"><LoadingState label="Loading analytics…" /></div>
   if (error) return <p className="p-6 text-sm text-red-600">Couldn’t load analytics: {error.message}</p>
 
   return (

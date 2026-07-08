@@ -5,6 +5,7 @@ import { useContexts } from '../../hooks/useContexts'
 import ProposalCard from '../chat/ProposalCard'
 import ConfirmDeleteButton from './forms/ConfirmDeleteButton'
 import TurnSkillIntoTodosModal from './TurnSkillIntoTodosModal'
+import LoadingState from '../LoadingState'
 import { isStuck } from '../../lib/stuckDetection'
 
 function GeneratePathForm() {
@@ -48,7 +49,7 @@ function GeneratePathForm() {
         <button
           type="submit"
           disabled={loading || !topic.trim()}
-          className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50 dark:bg-neutral-100 dark:text-neutral-900"
+          className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white transition-colors duration-150 hover:bg-neutral-700 disabled:opacity-50 disabled:hover:bg-neutral-900 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-300 dark:disabled:hover:bg-neutral-100"
         >
           {loading ? 'Generating…' : 'Generate'}
         </button>
@@ -103,7 +104,7 @@ export default function LearningPathsPanel() {
 
       <GeneratePathForm />
 
-      {isLoading && <p className="text-sm text-neutral-500">Loading learning paths…</p>}
+      {isLoading && <LoadingState label="Loading learning paths…" />}
       {error && <p className="text-sm text-red-600">Couldn’t load learning paths: {error.message}</p>}
       {!isLoading && !error && (!paths || paths.length === 0) && (
         <p className="text-sm text-neutral-500">None yet — generate one above, or ask Jarvis in chat.</p>

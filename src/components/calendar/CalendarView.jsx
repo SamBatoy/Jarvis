@@ -15,6 +15,7 @@ import {
 import clsx from 'clsx'
 import MonthGrid from './MonthGrid'
 import AgendaList from './AgendaList'
+import LoadingState from '../LoadingState'
 import { useTodos } from '../../hooks/useTodos'
 import { useDeadlines } from '../../hooks/useDeadlines'
 import { useEvents } from '../../hooks/useEvents'
@@ -46,10 +47,11 @@ export default function CalendarView() {
   const [dateParam, setDateParam] = useUrlState('calDate', format(new Date(), 'yyyy-MM-dd'))
   const cursorDate = useMemo(() => new Date(`${dateParam}T00:00:00`), [dateParam])
 
-  const { data: todos } = useTodos()
-  const { data: deadlines } = useDeadlines()
-  const { data: events } = useEvents()
-  const { data: contexts } = useContexts()
+  const { data: todos, isLoading: todosLoading } = useTodos()
+  const { data: deadlines, isLoading: deadlinesLoading } = useDeadlines()
+  const { data: events, isLoading: eventsLoading } = useEvents()
+  const { data: contexts, isLoading: contextsLoading } = useContexts()
+  const isLoading = todosLoading || deadlinesLoading || eventsLoading || contextsLoading
 
   const contextsById = useMemo(() => new Map((contexts ?? []).map((c) => [c.id, c])), [contexts])
   const range = useMemo(() => computeRange(mode, cursorDate), [mode, cursorDate])
@@ -118,7 +120,7 @@ export default function CalendarView() {
                 aria-pressed={mode === m.key}
                 onClick={() => setMode(m.key)}
                 className={clsx(
-                  'rounded-md px-3 py-1.5 text-sm font-medium',
+                  'rounded-md px-3 py-1.5 text-sm font-medium transition-colors duration-150',
                   mode === m.key
                     ? 'bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900'
                     : 'text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800'
@@ -131,27 +133,29 @@ export default function CalendarView() {
           <button
             onClick={() => navigate(-1)}
             aria-label="Previous"
-            className="rounded-md border border-neutral-300 px-2 py-1.5 text-sm dark:border-neutral-700"
+            className="rounded-md border border-neutral-300 px-2 py-1.5 text-sm transition-colors duration-150 hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
           >
             ‹
           </button>
           <button
             onClick={() => setDateParam(format(new Date(), 'yyyy-MM-dd'))}
-            className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm font-medium dark:border-neutral-700"
+            className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm font-medium transition-colors duration-150 hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
           >
             Today
           </button>
           <button
             onClick={() => navigate(1)}
             aria-label="Next"
-            className="rounded-md border border-neutral-300 px-2 py-1.5 text-sm dark:border-neutral-700"
+            className="rounded-md border border-neutral-300 px-2 py-1.5 text-sm transition-colors duration-150 hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
           >
             ›
           </button>
         </div>
       </div>
 
-      {mode === 'month' ? (
+      {isLoading ? (
+        <LoadingState label="Loading calendar…" />
+      ) : mode === 'month' ? (
         <MonthGrid cursorDate={cursorDate} itemsByDay={itemsByDay} onSelectDay={selectDay} />
       ) : (
         <AgendaList items={items} />

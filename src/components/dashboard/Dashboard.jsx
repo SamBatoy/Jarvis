@@ -16,6 +16,7 @@ import FocusMode from '../focus/FocusMode'
 import ProposalCard from '../chat/ProposalCard'
 import GoogleConnectionCard from './GoogleConnectionCard'
 import SuggestionsBatchCard from './SuggestionsBatchCard'
+import LoadingState from '../LoadingState'
 import { useContexts } from '../../hooks/useContexts'
 import { useEvents } from '../../hooks/useEvents'
 import { useGoals } from '../../hooks/useGoals'
@@ -59,7 +60,7 @@ export default function Dashboard() {
     }
   }
 
-  if (contextsLoading) return <p className="p-6 text-sm text-neutral-500">Loading dashboard…</p>
+  if (contextsLoading) return <div className="p-6"><LoadingState label="Loading dashboard…" /></div>
   if (contextsError) return <p className="p-6 text-sm text-red-600">Couldn’t load contexts: {contextsError.message}</p>
 
   return (
@@ -74,14 +75,14 @@ export default function Dashboard() {
           <QuickAddButton label="+ Subject/Project" onClick={() => setModal({ type: 'context' })} />
           <button
             onClick={() => setFocusModeOpen(true)}
-            className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white dark:bg-neutral-100 dark:text-neutral-900"
+            className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white transition-colors duration-150 hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-300"
           >
             Focus Mode
           </button>
           <button
             onClick={handleBalanceWeek}
             disabled={rebalance === 'loading'}
-            className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm font-medium hover:bg-neutral-100 disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-800"
+            className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm font-medium transition-colors duration-150 hover:bg-neutral-100 disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-800"
           >
             {rebalance === 'loading' ? 'Checking week…' : 'Balance my week'}
           </button>
@@ -127,10 +128,18 @@ export default function Dashboard() {
             <h2 id="contexts-heading" className="mb-2 text-sm font-semibold text-neutral-500 dark:text-neutral-400">
               Subjects & Projects
             </h2>
+            {(contexts ?? []).length === 0 && (
+              <p className="text-sm text-neutral-500">
+                No subjects or projects yet — use + Subject/Project above to add one.
+              </p>
+            )}
             <ul className="flex flex-wrap gap-1.5">
               {(contexts ?? []).map((c) => (
                 <li key={c.id}>
-                  <button onClick={() => setModal({ type: 'context', item: c })}>
+                  <button
+                    onClick={() => setModal({ type: 'context', item: c })}
+                    className="rounded-full opacity-90 transition-opacity duration-150 hover:opacity-100"
+                  >
                     <ContextBadge context={c} size="md" />
                   </button>
                 </li>
@@ -160,7 +169,7 @@ function QuickAddButton({ label, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm font-medium hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
+      className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm font-medium transition-colors duration-150 hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
     >
       {label}
     </button>

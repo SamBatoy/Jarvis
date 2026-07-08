@@ -27,10 +27,12 @@ one dashboard, one chat assistant, both domains side by side.
   invented links, if search isn't configured). Turn any skill into a dated
   todo plan under a new or existing project — it then disappears from the
   learning-path list since it's a tracked task now, not a pending skill.
-- **Archive/Done view**: todos past their deadline auto-archive daily (via
-  Vercel Cron) so the active list starts each day clean; you can also
-  archive one early yourself. The Archive tab shows a chronological history
-  of what got completed/missed/archived and when, achieved goals, and a
+- **Archive/Done view**: completing a todo archives it instantly (no wait
+  for its deadline); todos that pass their deadline while still incomplete
+  auto-archive daily instead (via Vercel Cron) so the active list starts
+  each day clean; you can also archive one early yourself. The Archive tab
+  shows a chronological history of what got completed/missed/archived and
+  when, achieved goals, and a
   visible log of every action Jarvis has taken and why.
 - **Calendar**: month/week/day views showing deadlines, todo due dates,
   events, and recurring classes together.

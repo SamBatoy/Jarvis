@@ -3,6 +3,7 @@ import clsx from 'clsx'
 import { useTodos, useUpdateTodo } from '../../hooks/useTodos'
 import { computePriorityScore } from '../../lib/priorityScore'
 import { useAmbientNoise } from '../../lib/ambientNoise'
+import LoadingState from '../LoadingState'
 
 function formatElapsed(totalSeconds) {
   const m = Math.floor(totalSeconds / 60)
@@ -107,14 +108,16 @@ export default function FocusMode({ onClose }) {
           <button
             onClick={onClose}
             aria-label="Close Focus Mode"
-            className="rounded-md p-1 text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+            className="rounded-md p-1 text-neutral-500 transition-colors duration-150 hover:bg-neutral-100 dark:hover:bg-neutral-800"
           >
             ✕
           </button>
         </div>
 
         {isLoading ? (
-          <p className="text-center text-sm text-neutral-500">Loading tasks…</p>
+          <div className="flex justify-center">
+            <LoadingState label="Loading tasks…" />
+          </div>
         ) : !selectedTodo ? (
           <p className="text-center text-sm text-neutral-500">No active tasks — nothing to focus on right now.</p>
         ) : (
@@ -144,7 +147,7 @@ export default function FocusMode({ onClose }) {
             <div className="mb-6 flex justify-center gap-2">
               <button
                 onClick={() => setRunning((r) => !r)}
-                className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white dark:bg-neutral-100 dark:text-neutral-900"
+                className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-300"
               >
                 {running ? 'Pause' : 'Start'}
               </button>
@@ -153,7 +156,7 @@ export default function FocusMode({ onClose }) {
                   setElapsedSeconds(0)
                   setRunning(false)
                 }}
-                className="rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium dark:border-neutral-700"
+                className="rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium transition-colors duration-150 hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
               >
                 Reset
               </button>
@@ -161,7 +164,7 @@ export default function FocusMode({ onClose }) {
                 onClick={toggleSound}
                 aria-pressed={soundOn}
                 className={clsx(
-                  'rounded-md border px-4 py-2 text-sm font-medium',
+                  'rounded-md border px-4 py-2 text-sm font-medium transition-colors duration-150 hover:bg-neutral-100 dark:hover:bg-neutral-800',
                   soundOn
                     ? 'border-neutral-900 dark:border-neutral-100'
                     : 'border-neutral-300 dark:border-neutral-700'
@@ -185,7 +188,7 @@ export default function FocusMode({ onClose }) {
 
             <button
               onClick={handleMarkDone}
-              className="w-full rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+              className="w-full rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-emerald-700"
             >
               Mark Done
             </button>

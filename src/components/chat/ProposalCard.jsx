@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { formatDateTime } from '../../lib/dateUtils'
+import LoadingState from '../LoadingState'
 
 const QUERY_KEY_BY_TOOL = {
   propose_scaffold: ['todos'],
@@ -200,20 +201,24 @@ export default function ProposalCard({ proposal, source = 'dashboard' }) {
         <div className="mt-3 flex gap-2">
           <button
             onClick={handleConfirm}
-            className="rounded-md bg-neutral-900 px-3 py-1 text-xs font-medium text-white dark:bg-neutral-100 dark:text-neutral-900"
+            className="rounded-md bg-neutral-900 px-3 py-1 text-xs font-medium text-white transition-colors duration-150 hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-300"
           >
             Confirm
           </button>
           <button
             onClick={handleCancel}
-            className="rounded-md border border-neutral-300 px-3 py-1 text-xs font-medium dark:border-neutral-700"
+            className="rounded-md border border-neutral-300 px-3 py-1 text-xs font-medium transition-colors duration-150 hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
           >
             Cancel
           </button>
         </div>
       )}
       <div aria-live="polite">
-        {status === 'confirming' && <p className="mt-3 text-xs text-neutral-500">Applying…</p>}
+        {status === 'confirming' && (
+          <div className="mt-3">
+            <LoadingState label="Applying…" />
+          </div>
+        )}
         {status === 'confirmed' && (
           <p className="mt-3 text-xs font-medium text-emerald-700 dark:text-emerald-400">✓ Done</p>
         )}

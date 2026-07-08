@@ -20,7 +20,7 @@ export default function FilterBar({ contexts, domain, onDomainChange, contextId,
               onContextChange(null)
             }}
             className={clsx(
-              'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+              'cursor-pointer rounded-md px-3 py-1.5 text-sm font-medium transition-colors duration-150',
               domain === opt.key && !contextId
                 ? 'bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900'
                 : 'text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800'
@@ -39,8 +39,8 @@ export default function FilterBar({ contexts, domain, onDomainChange, contextId,
               aria-pressed={contextId === c.id}
               onClick={() => onContextChange(contextId === c.id ? null : c.id)}
               className={clsx(
-                'rounded-full ring-offset-2 dark:ring-offset-neutral-950',
-                contextId === c.id && 'ring-2'
+                'cursor-pointer rounded-full opacity-90 ring-offset-2 transition-opacity duration-150 hover:opacity-100 dark:ring-offset-neutral-950',
+                contextId === c.id && 'ring-2 opacity-100'
               )}
               style={contextId === c.id ? { '--tw-ring-color': c.color } : undefined}
             >

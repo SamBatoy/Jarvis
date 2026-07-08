@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import clsx from 'clsx'
 import ContextBadge from './ContextBadge'
+import LoadingState from '../LoadingState'
 import { formatDateTime, isOverdue } from '../../lib/dateUtils'
 import { useDeadlines } from '../../hooks/useDeadlines'
 
@@ -15,7 +16,7 @@ export default function DeadlinesList({ contextsById, domain, contextId }) {
     })
   }, [deadlines, domain, contextId, contextsById])
 
-  if (isLoading) return <p className="text-sm text-neutral-500">Loading deadlines…</p>
+  if (isLoading) return <LoadingState label="Loading deadlines…" />
   if (error) return <p className="text-sm text-red-600">Couldn’t load deadlines: {error.message}</p>
 
   return (

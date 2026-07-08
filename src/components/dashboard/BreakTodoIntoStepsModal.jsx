@@ -111,7 +111,7 @@ export default function BreakTodoIntoStepsModal({ todo, onClose }) {
             <button
               onClick={handleConfirm}
               disabled={phase === 'applying'}
-              className="w-full rounded-md bg-neutral-900 px-4 py-1.5 text-sm font-medium text-white disabled:opacity-50 dark:bg-neutral-100 dark:text-neutral-900"
+              className="w-full rounded-md bg-neutral-900 px-4 py-1.5 text-sm font-medium text-white transition-colors duration-150 hover:bg-neutral-700 disabled:opacity-50 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-300"
             >
               {phase === 'applying' ? 'Creating…' : 'Confirm'}
             </button>

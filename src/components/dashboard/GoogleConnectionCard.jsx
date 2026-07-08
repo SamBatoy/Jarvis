@@ -55,7 +55,7 @@ export default function GoogleConnectionCard() {
           </p>
           <a
             href="/api/auth/google/start"
-            className="inline-block rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white dark:bg-neutral-100 dark:text-neutral-900"
+            className="inline-block rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white transition-colors duration-150 hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-300"
           >
             Connect Google
           </a>
@@ -70,7 +70,7 @@ export default function GoogleConnectionCard() {
           </p>
           <a
             href="/api/auth/google/start"
-            className="inline-block rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white dark:bg-neutral-100 dark:text-neutral-900"
+            className="inline-block rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white transition-colors duration-150 hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-300"
           >
             Reconnect
           </a>

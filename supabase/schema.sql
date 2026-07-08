@@ -49,9 +49,10 @@ create table if not exists todos (
     'build-feature', 'design', 'debug', 'deploy', 'ship', 'general'
   )),
   parent_todo_id uuid references todos(id) on delete cascade,
-  -- archiving: todos past their due date auto-archive daily (cron), or the
-  -- user can archive one manually early. reason distinguishes why it left
-  -- the active list: 'completed' | 'missed' (both auto, by due-date pass) | 'manual'
+  -- archiving: completing a todo archives it instantly (trigger below,
+  -- independent of due_date entirely); a todo whose due_date passes while
+  -- still not done auto-archives daily (cron) as 'missed'; the user can
+  -- also archive one manually early. reason: 'completed' | 'missed' | 'manual'
   archived boolean not null default false,
   archived_at timestamptz,
   archive_reason text check (archive_reason in ('completed', 'missed', 'manual')),
@@ -91,12 +92,18 @@ create trigger todos_set_updated_at before update on todos
 
 -- done can be toggled from two independent code paths (dashboard checkbox,
 -- chat's update_todo), so a trigger is the single source of truth for
--- completed_at rather than threading it through both.
+-- completed_at *and* instant archiving rather than threading it through
+-- both — completing a todo archives it immediately, regardless of
+-- due_date; see 010_instant_archive_on_complete.sql for the bug this fixed
+-- (archiving used to wait for due_date to pass even for completed todos).
 create or replace function set_todo_completed_at()
 returns trigger as $$
 begin
   if new.done = true and (old.done is distinct from true) then
     new.completed_at := now();
+    new.archived := true;
+    new.archived_at := now();
+    new.archive_reason := 'completed';
   elsif new.done = false then
     new.completed_at := null;
   end if;

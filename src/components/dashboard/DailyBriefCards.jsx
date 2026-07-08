@@ -92,7 +92,7 @@ function MissedReasonPicker({ slipped }) {
       </ul>
       <button
         onClick={handleSave}
-        className="mt-2 rounded bg-neutral-900 px-2 py-1 text-xs font-medium text-white dark:bg-neutral-100 dark:text-neutral-900"
+        className="mt-2 rounded bg-neutral-900 px-2 py-1 text-xs font-medium text-white transition-colors duration-150 hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-300"
       >
         Save
       </button>

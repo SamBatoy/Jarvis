@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { useGoals } from '../../hooks/useGoals'
 import { useAllTodosForAnalytics } from '../../hooks/useTodos'
+import LoadingState from '../LoadingState'
 import { formatDate } from '../../lib/dateUtils'
 import { computeGoalHealth, formatMinutes } from '../../lib/goalHealth'
 
@@ -26,7 +27,7 @@ export default function GoalsPanel() {
     return map
   }, [todos])
 
-  if (isLoading) return <p className="text-sm text-neutral-500">Loading goals…</p>
+  if (isLoading) return <LoadingState label="Loading goals…" />
   if (error) return <p className="text-sm text-red-600">Couldn’t load goals: {error.message}</p>
 
   return (

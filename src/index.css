@@ -14,4 +14,27 @@ body {
   :focus-visible {
     @apply outline outline-2 outline-offset-2 outline-blue-500;
   }
+
+  /* Tailwind's preflight resets <button> to cursor: default. Nearly every
+     clickable element in this app is a real <button>, so this is a global
+     fix for a systemic gap rather than something to repeat per component. */
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']) {
+    cursor: pointer;
+  }
+  button:disabled,
+  [role='button'][aria-disabled='true'] {
+    cursor: not-allowed;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

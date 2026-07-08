@@ -1,6 +1,7 @@
 import { useChat } from '../../hooks/useChat'
 import MessageList from './MessageList'
 import ChatInput from './ChatInput'
+import LoadingState from '../LoadingState'
 
 export default function ChatPanel() {
   const { displayMessages, sendMessage, sending, error } = useChat()
@@ -17,7 +18,11 @@ export default function ChatPanel() {
             {error}
           </p>
         )}
-        {sending && <p className="px-4 pb-2 text-xs text-neutral-500">Thinking…</p>}
+        {sending && (
+          <div className="px-4 pb-2">
+            <LoadingState label="Thinking…" />
+          </div>
+        )}
       </div>
       <ChatInput onSend={sendMessage} disabled={sending} />
     </div>

@@ -30,7 +30,7 @@ export default function MonthGrid({ cursorDate, itemsByDay, onSelectDay }) {
               onClick={() => onSelectDay(day)}
               aria-label={`${format(day, 'MMMM d, yyyy')}${count > 0 ? `, ${count} item${count > 1 ? 's' : ''}` : ''}`}
               className={clsx(
-                'flex h-20 flex-col items-start gap-1 bg-white p-1.5 text-left dark:bg-neutral-900',
+                'flex h-20 flex-col items-start gap-1 bg-white p-1.5 text-left transition-colors duration-150 hover:bg-neutral-50 dark:bg-neutral-900 dark:hover:bg-neutral-800',
                 !inMonth && 'text-neutral-300 dark:text-neutral-600',
                 isToday(day) && 'ring-2 ring-inset ring-blue-500'
               )}

@@ -5,6 +5,7 @@ import { useGoals } from '../../hooks/useGoals'
 import { useActionLog } from '../../hooks/useActionLog'
 import { useContexts } from '../../hooks/useContexts'
 import ContextBadge from '../dashboard/ContextBadge'
+import LoadingState from '../LoadingState'
 import { formatDate, formatDateTime, groupByDay } from '../../lib/dateUtils'
 
 const REASON_STYLES = {
@@ -26,7 +27,7 @@ function ArchivedTodoRow({ todo, context }) {
       <ContextBadge context={context} />
       <button
         onClick={() => updateTodo.mutate({ id: todo.id, fields: { archived: false } })}
-        className="shrink-0 text-xs text-blue-600 hover:underline dark:text-blue-400"
+        className="shrink-0 text-xs text-blue-600 transition-colors duration-150 hover:underline dark:text-blue-400"
       >
         Unarchive
       </button>
@@ -39,7 +40,7 @@ function CompletedAndMissedSection({ contextsById }) {
 
   const grouped = useMemo(() => groupByDay(todos ?? [], 'archived_at'), [todos])
 
-  if (isLoading) return <p className="text-sm text-neutral-500">Loading archive…</p>
+  if (isLoading) return <LoadingState label="Loading archive…" />
   if (error) return <p className="text-sm text-red-600">Couldn’t load archive: {error.message}</p>
   if (grouped.length === 0) return <p className="text-sm text-neutral-500">Nothing archived yet.</p>
 
@@ -67,7 +68,7 @@ function AchievedGoalsSection() {
     [goals]
   )
 
-  if (isLoading) return <p className="text-sm text-neutral-500">Loading achieved goals…</p>
+  if (isLoading) return <LoadingState label="Loading achieved goals…" />
   if (error) return <p className="text-sm text-red-600">Couldn’t load goals: {error.message}</p>
   if (sorted.length === 0) return <p className="text-sm text-neutral-500">No achieved goals yet.</p>
 
@@ -89,7 +90,7 @@ function AchievedGoalsSection() {
 function RecentActivitySection() {
   const { data: entries, isLoading, error } = useActionLog(30)
 
-  if (isLoading) return <p className="text-sm text-neutral-500">Loading activity…</p>
+  if (isLoading) return <LoadingState label="Loading activity…" />
   if (error) return <p className="text-sm text-red-600">Couldn’t load activity: {error.message}</p>
   if (!entries || entries.length === 0) return <p className="text-sm text-neutral-500">No activity yet.</p>
 

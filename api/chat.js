@@ -4,10 +4,16 @@ import { buildSystemPrompt } from '../server/systemPrompt.js'
 
 const MAX_TOOL_ROUNDS = 6
 
-// Status codes that mean "the provider itself is unavailable/exhausted"
-// (rate limit, auth, outage) — retrying with model-facing feedback can't fix
-// these, so fail fast with a clear message instead of burning every round.
-const PROVIDER_FAILURE_STATUS = new Set([401, 403, 429, 500, 502, 503])
+// Status codes that mean "the provider itself is unavailable/exhausted, or
+// this exact request can never succeed as-is" (rate limit, auth, outage,
+// payload too large) — retrying with model-facing feedback can't fix these,
+// so fail fast with a clear message instead of burning every round. 413
+// specifically showed up as a real bug: a bloated conversation (e.g. from
+// several large tool results) kept getting retried with an ever-growing
+// "fix your arguments" message appended each round, which only made the
+// payload bigger, until MAX_TOOL_ROUNDS ran out and surfaced a misleading
+// "tool-call limit" message instead of the real cause.
+const PROVIDER_FAILURE_STATUS = new Set([401, 403, 413, 429, 500, 502, 503])
 
 async function runTool(call) {
   const tool = getTool(call.function.name)
@@ -65,9 +71,11 @@ export default async function handler(req, res) {
         if (PROVIDER_FAILURE_STATUS.has(e.status)) {
           // Not something a retry-with-feedback loop can fix — surface it
           // immediately instead of burning the remaining rounds.
-          res.status(e.status === 429 ? 429 : 502).json({
-            error: `Jarvis's language model provider is currently unavailable (${e.status}): ${e.message}`,
-          })
+          const message =
+            e.status === 413
+              ? `This conversation got too large for the model to process in one request (${e.message}). Try starting a new conversation or asking something more specific.`
+              : `Jarvis's language model provider is currently unavailable (${e.status}): ${e.message}`
+          res.status(e.status === 429 || e.status === 413 ? e.status : 502).json({ error: message })
           return
         }
 

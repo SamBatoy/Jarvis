@@ -90,13 +90,15 @@ export default function SuggestionsBatchCard() {
       <ul className="space-y-2">
         {suggestions.map((s) => (
           <li key={s.id} className="flex items-start gap-2">
-            <input
-              type="checkbox"
-              checked={s.accepted}
-              onChange={() => toggleAccepted(s.id)}
-              aria-label={`Accept "${s.title}"`}
-              className="mt-1.5 h-4 w-4 shrink-0 accent-neutral-900 dark:accent-neutral-100"
-            />
+            <label className="relative mt-1.5 flex h-4 w-4 shrink-0 cursor-pointer before:absolute before:-inset-1.5 before:content-['']">
+              <input
+                type="checkbox"
+                checked={s.accepted}
+                onChange={() => toggleAccepted(s.id)}
+                aria-label={`Accept "${s.title}"`}
+                className="h-4 w-4 accent-neutral-900 dark:accent-neutral-100"
+              />
+            </label>
             <div className="min-w-0 flex-1 space-y-1">
               <input
                 value={s.title}
@@ -125,7 +127,7 @@ export default function SuggestionsBatchCard() {
       <button
         onClick={handleConfirm}
         disabled={phase === 'applying'}
-        className="mt-3 rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50 dark:bg-neutral-100 dark:text-neutral-900"
+        className="mt-3 rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white transition-colors duration-150 hover:bg-neutral-700 disabled:pointer-events-none disabled:opacity-50 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-300"
       >
         {phase === 'applying' ? 'Applying…' : 'Confirm Selected'}
       </button>

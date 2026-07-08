@@ -1,5 +1,6 @@
-import { useMemo } from 'react'
-import TodoItem from './TodoItem'
+import { useMemo, useState } from 'react'
+import TodoItem, { MarkDoneStrip } from './TodoItem'
+import LoadingState from '../LoadingState'
 import { useTodos } from '../../hooks/useTodos'
 
 const PRIORITY_WEIGHT = { high: 0, medium: 1, low: 2 }
@@ -15,6 +16,25 @@ function compareTodos(a, b) {
 
 export default function TodoList({ contextsById, domain, contextId, onEditTodo }) {
   const { data: todos, isLoading, error } = useTodos()
+
+  // Completing a todo now archives it instantly (independent of due_date —
+  // see 010_instant_archive_on_complete.sql), so it vanishes from `todos`
+  // (archived: false is the default filter) on the very next refetch,
+  // before the user gets a chance to log actual time via MarkDoneStrip.
+  // Track "just completed this session, still awaiting a time log" here as
+  // a local snapshot instead, independent of whether the todo is still in
+  // the fetched list.
+  const [pendingTimeLog, setPendingTimeLog] = useState([]) // { id, title, estimated_minutes }[]
+  function handleMarkedDone(todo) {
+    setPendingTimeLog((prev) =>
+      prev.some((t) => t.id === todo.id)
+        ? prev
+        : [...prev, { id: todo.id, title: todo.title, estimated_minutes: todo.estimated_minutes }]
+    )
+  }
+  function dismissTimeLog(id) {
+    setPendingTimeLog((prev) => prev.filter((t) => t.id !== id))
+  }
 
   const { topLevel, childrenByParent } = useMemo(() => {
     const all = todos ?? []
@@ -41,7 +61,7 @@ export default function TodoList({ contextsById, domain, contextId, onEditTodo }
       .sort(compareTodos)
   }, [topLevel, domain, contextId, contextsById])
 
-  if (isLoading) return <p className="text-sm text-neutral-500">Loading todos…</p>
+  if (isLoading) return <LoadingState label="Loading todos…" />
   if (error) return <p className="text-sm text-red-600">Couldn’t load todos: {error.message}</p>
 
   return (
@@ -49,6 +69,16 @@ export default function TodoList({ contextsById, domain, contextId, onEditTodo }
       <h2 id="todos-heading" className="mb-2 text-sm font-semibold text-neutral-500 dark:text-neutral-400">
         Todos
       </h2>
+      {pendingTimeLog.length > 0 && (
+        <ul className="mb-2 space-y-1 rounded-xl border border-neutral-200 px-3 py-2 dark:border-neutral-800">
+          {pendingTimeLog.map((todo) => (
+            <li key={todo.id}>
+              <p className="text-sm font-medium text-neutral-500 line-through">{todo.title}</p>
+              <MarkDoneStrip todo={todo} onDismiss={() => dismissTimeLog(todo.id)} />
+            </li>
+          ))}
+        </ul>
+      )}
       {filtered.length === 0 ? (
         <p className="text-sm text-neutral-500">Nothing here — you’re clear.</p>
       ) : (
@@ -61,6 +91,7 @@ export default function TodoList({ contextsById, domain, contextId, onEditTodo }
               contextsById={contextsById}
               childTodos={childrenByParent.get(todo.id) ?? []}
               onEdit={onEditTodo}
+              onMarkedDone={handleMarkedDone}
             />
           ))}
         </ul>

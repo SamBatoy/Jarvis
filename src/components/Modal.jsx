@@ -32,7 +32,7 @@ export default function Modal({ title, onClose, children }) {
           <button
             onClick={onClose}
             aria-label="Close"
-            className="rounded-md p-1 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
+            className="rounded-md p-1 text-neutral-500 transition-colors duration-150 hover:bg-neutral-100 hover:text-neutral-900 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
           >
             ✕
           </button>

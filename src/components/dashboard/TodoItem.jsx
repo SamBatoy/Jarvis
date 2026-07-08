@@ -19,7 +19,15 @@ const SUGGESTION_ARROW = { high: '↑', medium: '·', low: '↓' }
 // itself by the time this shows, so Dismiss loses nothing. Only asks for
 // what's missing: actual minutes always, plus a retroactive estimate if the
 // task never got one.
-function MarkDoneStrip({ todo, onDismiss }) {
+//
+// Rendered by TodoList, not here: completing a todo now archives it
+// instantly (see 010_instant_archive_on_complete.sql), so by the time this
+// would show, the todo has already vanished from TodoList's fetched
+// results (archived: false is the default filter) and Row/TodoItem would
+// have already unmounted. TodoList tracks "just completed, awaiting a time
+// log" as its own local state — a small snapshot, not a live query row —
+// and renders this independently of whether the todo is still in the list.
+export function MarkDoneStrip({ todo, onDismiss }) {
   const updateTodo = useUpdateTodo()
   const [actualMinutes, setActualMinutes] = useState('')
   const [estimatedMinutes, setEstimatedMinutes] = useState('')
@@ -55,11 +63,14 @@ function MarkDoneStrip({ todo, onDismiss }) {
       )}
       <button
         onClick={handleSave}
-        className="rounded bg-neutral-900 px-2 py-1 font-medium text-white dark:bg-neutral-100 dark:text-neutral-900"
+        className="rounded bg-neutral-900 px-2 py-1 font-medium text-white transition-colors duration-150 hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-300"
       >
         Save
       </button>
-      <button onClick={onDismiss} className="rounded px-2 py-1 hover:bg-neutral-100 dark:hover:bg-neutral-800">
+      <button
+        onClick={onDismiss}
+        className="rounded px-2 py-1 transition-colors duration-150 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+      >
         Dismiss
       </button>
     </div>
@@ -105,9 +116,8 @@ function StuckActions({ todo }) {
   )
 }
 
-function Row({ todo, context, onEdit, childCount = 0 }) {
+function Row({ todo, context, onEdit, childCount = 0, onMarkedDone }) {
   const updateTodo = useUpdateTodo()
-  const [showMarkDonePrompt, setShowMarkDonePrompt] = useState(false)
   const suggested = suggestedPriorityLabel(computePriorityScore(todo, { childCount }))
   const showSuggestion = !todo.done && suggested !== todo.priority
   const stuck = isStuck({ lastActivityAt: todo.updated_at ?? todo.created_at, isComplete: todo.done })
@@ -115,20 +125,28 @@ function Row({ todo, context, onEdit, childCount = 0 }) {
   return (
     <div>
       <div className="flex items-center gap-3 py-2">
-        <input
-          type="checkbox"
-          checked={todo.done}
-          onChange={(e) => {
-            const checked = e.target.checked
-            updateTodo.mutate({ id: todo.id, fields: { done: checked } })
-            if (checked) setShowMarkDonePrompt(true)
-          }}
-          aria-label={`Mark "${todo.title}" ${todo.done ? 'not done' : 'done'}`}
-          className="h-4 w-4 shrink-0 rounded border-neutral-300 accent-neutral-900 dark:accent-neutral-100"
-        />
+        {/* Invisible before: pseudo-element expands the click/tap target
+            without affecting layout (absolute positioning, out of flow) —
+            the visible checkbox itself stays 16x16, unchanged. */}
+        <label className="relative flex h-4 w-4 shrink-0 cursor-pointer before:absolute before:-inset-2 before:content-['']">
+          <input
+            type="checkbox"
+            checked={todo.done}
+            onChange={(e) => {
+              const checked = e.target.checked
+              updateTodo.mutate({ id: todo.id, fields: { done: checked } })
+              if (checked) onMarkedDone?.(todo)
+            }}
+            aria-label={`Mark "${todo.title}" ${todo.done ? 'not done' : 'done'}`}
+            className="h-4 w-4 rounded border-neutral-300 accent-neutral-900 dark:accent-neutral-100"
+          />
+        </label>
         <button
           onClick={() => onEdit?.(todo)}
-          className={clsx('min-w-0 flex-1 truncate text-left text-sm', todo.done && 'text-neutral-400 line-through')}
+          className={clsx(
+            'min-w-0 flex-1 truncate text-left text-sm transition-colors duration-150 hover:text-blue-600 dark:hover:text-blue-400',
+            todo.done && 'text-neutral-400 line-through hover:text-neutral-500 dark:hover:text-neutral-500'
+          )}
         >
           {todo.title}
         </button>
@@ -148,13 +166,12 @@ function Row({ todo, context, onEdit, childCount = 0 }) {
         {todo.due_date && <span className="shrink-0 text-xs text-neutral-500">{formatDate(todo.due_date)}</span>}
         <ContextBadge context={context} />
       </div>
-      {showMarkDonePrompt && <MarkDoneStrip todo={todo} onDismiss={() => setShowMarkDonePrompt(false)} />}
-      {stuck && !showMarkDonePrompt && <StuckActions todo={todo} />}
+      {stuck && <StuckActions todo={todo} />}
     </div>
   )
 }
 
-export default function TodoItem({ todo, context, childTodos = [], contextsById, onEdit }) {
+export default function TodoItem({ todo, context, childTodos = [], contextsById, onEdit, onMarkedDone }) {
   const [expanded, setExpanded] = useState(false)
   const hasChildren = childTodos.length > 0
   const doneCount = childTodos.filter((c) => c.done).length
@@ -167,7 +184,7 @@ export default function TodoItem({ todo, context, childTodos = [], contextsById,
             onClick={() => setExpanded((v) => !v)}
             aria-expanded={expanded}
             aria-label={expanded ? 'Collapse subtasks' : 'Expand subtasks'}
-            className="mr-1 shrink-0 rounded p-1 text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+            className="mr-1 shrink-0 rounded p-1 text-neutral-400 transition-colors duration-150 hover:bg-neutral-100 dark:hover:bg-neutral-800"
           >
             {expanded ? '▾' : '▸'}
           </button>
@@ -175,7 +192,7 @@ export default function TodoItem({ todo, context, childTodos = [], contextsById,
           <span className="mr-1 w-6 shrink-0" />
         )}
         <div className="flex-1">
-          <Row todo={todo} context={context} onEdit={onEdit} childCount={childTodos.length} />
+          <Row todo={todo} context={context} onEdit={onEdit} childCount={childTodos.length} onMarkedDone={onMarkedDone} />
         </div>
         {hasChildren && (
           <span className="ml-2 shrink-0 text-xs text-neutral-500">
@@ -187,7 +204,12 @@ export default function TodoItem({ todo, context, childTodos = [], contextsById,
         <ul className="ml-7 border-l border-neutral-200 pl-3 dark:border-neutral-800">
           {childTodos.map((child) => (
             <li key={child.id}>
-              <Row todo={child} context={contextsById.get(child.context_id)} onEdit={onEdit} />
+              <Row
+                todo={child}
+                context={contextsById.get(child.context_id)}
+                onEdit={onEdit}
+                onMarkedDone={onMarkedDone}
+              />
             </li>
           ))}
         </ul>
