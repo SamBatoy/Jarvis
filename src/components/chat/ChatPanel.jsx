@@ -8,13 +8,15 @@ export default function ChatPanel() {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="border-b border-neutral-200 p-3 dark:border-neutral-800">
-        <h2 className="font-semibold">Jarvis</h2>
+      <div className="border-b border-hud-accent/20 p-3">
+        <h2 className="font-mono text-sm font-semibold tracking-[0.22em] [text-shadow:0_0_12px_rgba(56,225,255,0.45)]">
+          JAR<span className="text-hud-accent">VIS</span>
+        </h2>
       </div>
       <MessageList messages={displayMessages} />
       <div aria-live="polite">
         {error && (
-          <p role="alert" className="px-4 pb-2 text-xs text-red-600 dark:text-red-400">
+          <p role="alert" className="px-4 pb-2 text-xs text-hud-crit">
             {error}
           </p>
         )}

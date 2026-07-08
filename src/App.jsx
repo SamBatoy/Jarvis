@@ -24,7 +24,7 @@ export default function App() {
     <div className="flex h-screen flex-col overflow-hidden lg:flex-row">
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-neutral-900 focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-white dark:focus:bg-neutral-100 dark:focus:text-neutral-900"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:border focus:border-hud-accent focus:bg-hud-panel focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-hud-accent"
       >
         Skip to main content
       </a>
@@ -49,30 +49,30 @@ export default function App() {
       {/* Desktop: docked side panel. Breakpoint is lg (1024), not md (768) —
           at 768 the fixed w-96 panel left too little room for main content,
           crowding cards like Morning/Night Review into awkward text wraps. */}
-      <aside className="hidden w-96 shrink-0 flex-col overflow-hidden border-l border-neutral-200 lg:flex dark:border-neutral-800">
+      <aside className="hidden w-96 shrink-0 flex-col overflow-hidden border-l border-hud-accent/20 lg:flex">
         <ChatPanel />
       </aside>
 
       {/* Mobile/tablet: collapsible drawer, up through lg */}
       <button
         onClick={() => setChatOpen(true)}
-        className="fixed bottom-4 right-4 z-40 rounded-full bg-neutral-900 px-4 py-3 text-sm font-medium text-white shadow-lg transition-colors duration-150 hover:bg-neutral-700 lg:hidden dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-300"
+        className="hud-btn-primary fixed bottom-4 right-4 z-40 rounded-full px-4 py-3 shadow-lg lg:hidden"
       >
-        Chat
+        CHAT
       </button>
       {chatOpen && (
         <div
           role="dialog"
           aria-modal="true"
           aria-label="Jarvis Chat"
-          className="fixed inset-0 z-50 flex flex-col overscroll-contain bg-white lg:hidden dark:bg-neutral-950"
+          className="fixed inset-0 z-50 flex flex-col overscroll-contain bg-hud-bg lg:hidden"
         >
-          <div className="flex items-center justify-between border-b border-neutral-200 p-3 dark:border-neutral-800">
-            <span className="font-semibold">Jarvis Chat</span>
+          <div className="flex items-center justify-between border-b border-hud-accent/20 p-3">
+            <span className="hud-label">Jarvis Chat</span>
             <button
               onClick={() => setChatOpen(false)}
               aria-label="Close chat"
-              className="rounded-md p-1 text-neutral-500 transition-colors duration-150 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+              className="rounded-md p-1 text-hud-muted transition-colors duration-150 hover:bg-hud-accent/10 hover:text-hud-text"
             >
               ✕
             </button>

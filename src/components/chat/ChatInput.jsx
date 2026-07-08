@@ -48,9 +48,9 @@ export default function ChatInput({ onSend, disabled }) {
   }
 
   return (
-    <div className="border-t border-neutral-200 dark:border-neutral-800">
+    <div className="border-t border-hud-accent/20">
       {speechError && (
-        <p role="alert" className="px-3 pt-2 text-xs text-red-600 dark:text-red-400">
+        <p role="alert" className="px-3 pt-2 text-xs text-hud-crit">
           {speechError}
         </p>
       )}
@@ -67,7 +67,7 @@ export default function ChatInput({ onSend, disabled }) {
           rows={1}
           placeholder="Message Jarvis…"
           aria-label="Message Jarvis"
-          className="flex-1 resize-none rounded-lg border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-800"
+          className="hud-input flex-1 resize-none rounded-lg !py-2"
         />
         {speechSupported && (
           <button
@@ -77,8 +77,8 @@ export default function ChatInput({ onSend, disabled }) {
             aria-label={listening ? 'Stop voice input' : 'Start voice input'}
             className={
               listening
-                ? 'animate-pulse rounded-lg bg-red-600 px-3 py-2 text-white transition-colors duration-150 hover:bg-red-700'
-                : 'rounded-lg border border-neutral-300 px-3 py-2 text-neutral-600 transition-colors duration-150 hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800'
+                ? 'animate-pulse rounded-lg border border-hud-crit bg-hud-crit/20 px-3 py-2 text-hud-crit transition-colors duration-150 [box-shadow:0_0_14px_rgba(255,107,107,0.4)] hover:bg-hud-crit/30'
+                : 'rounded-lg border border-hud-accent/30 px-3 py-2 text-hud-muted transition-all duration-150 hover:border-hud-accent hover:text-hud-text hover:[box-shadow:0_0_14px_rgba(56,225,255,0.35)]'
             }
           >
             {listening ? <StopIcon /> : <MicIcon />}
@@ -87,7 +87,7 @@ export default function ChatInput({ onSend, disabled }) {
         <button
           type="submit"
           disabled={disabled || !text.trim()}
-          className="rounded-lg bg-neutral-900 px-3 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-neutral-700 disabled:pointer-events-none disabled:opacity-50 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-300"
+          className="hud-btn-primary rounded-lg !py-2"
         >
           Send
         </button>

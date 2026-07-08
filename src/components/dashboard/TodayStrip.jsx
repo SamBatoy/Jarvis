@@ -21,17 +21,17 @@ export default function TodayStrip({ contexts, events }) {
   ]
 
   return (
-    <section aria-labelledby="today-heading" className="rounded-xl border border-neutral-200 p-4 dark:border-neutral-800">
-      <h2 id="today-heading" className="mb-3 text-sm font-semibold text-neutral-500 dark:text-neutral-400">
+    <section aria-labelledby="today-heading" className="hud-panel">
+      <h2 id="today-heading" className="hud-label mb-3">
         Today
       </h2>
       {items.length === 0 ? (
-        <p className="text-sm text-neutral-500">Nothing scheduled today.</p>
+        <p className="text-sm text-hud-muted">Nothing scheduled today.</p>
       ) : (
         <ul className="space-y-2">
           {items.map((item) => (
             <li key={item.key} className="flex items-center gap-3 text-sm">
-              <span className="w-20 shrink-0 text-neutral-500 dark:text-neutral-400">{item.time}</span>
+              <span className="w-20 shrink-0 font-mono text-xs text-hud-accent">{item.time}</span>
               <span className="min-w-0 flex-1 truncate font-medium">{item.title}</span>
               <ContextBadge context={item.context} />
             </li>

@@ -47,7 +47,7 @@ export default function EventForm({ event, contexts, onClose }) {
             required
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full rounded-md border border-neutral-300 px-3 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-800"
+            className="hud-input w-full"
           />
         </div>
         <div className="grid grid-cols-2 gap-3">
@@ -58,7 +58,7 @@ export default function EventForm({ event, contexts, onClose }) {
               required
               value={startAt}
               onChange={(e) => setStartAt(e.target.value)}
-              className="w-full rounded-md border border-neutral-300 px-3 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-800"
+              className="hud-input w-full"
             />
           </div>
           <div>
@@ -68,7 +68,7 @@ export default function EventForm({ event, contexts, onClose }) {
               required
               value={endAt}
               onChange={(e) => setEndAt(e.target.value)}
-              className="w-full rounded-md border border-neutral-300 px-3 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-800"
+              className="hud-input w-full"
             />
           </div>
         </div>
@@ -77,7 +77,7 @@ export default function EventForm({ event, contexts, onClose }) {
           <input
             value={location}
             onChange={(e) => setLocation(e.target.value)}
-            className="w-full rounded-md border border-neutral-300 px-3 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-800"
+            className="hud-input w-full"
           />
         </div>
         <div>
@@ -86,7 +86,7 @@ export default function EventForm({ event, contexts, onClose }) {
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={2}
-            className="w-full rounded-md border border-neutral-300 px-3 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-800"
+            className="hud-input w-full"
           />
         </div>
         <div>
@@ -94,7 +94,7 @@ export default function EventForm({ event, contexts, onClose }) {
           <select
             value={contextId}
             onChange={(e) => setContextId(e.target.value)}
-            className="w-full rounded-md border border-neutral-300 px-3 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-800"
+            className="hud-input w-full"
           >
             <option value="">None</option>
             {contexts.map((c) => (
@@ -105,7 +105,7 @@ export default function EventForm({ event, contexts, onClose }) {
           </select>
         </div>
         {saveError && (
-          <p role="alert" className="text-xs text-red-600 dark:text-red-400">
+          <p role="alert" className="text-xs text-hud-crit">
             {saveError.message}
           </p>
         )}
@@ -121,7 +121,7 @@ export default function EventForm({ event, contexts, onClose }) {
           <button
             type="submit"
             disabled={saving}
-            className="rounded-md bg-neutral-900 px-4 py-1.5 text-sm font-medium text-white transition-colors duration-150 hover:bg-neutral-700 disabled:opacity-50 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-300"
+            className="hud-btn-primary !px-4"
           >
             {isEdit ? 'Save' : 'Create'}
           </button>

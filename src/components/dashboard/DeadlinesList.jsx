@@ -17,15 +17,15 @@ export default function DeadlinesList({ contextsById, domain, contextId }) {
   }, [deadlines, domain, contextId, contextsById])
 
   if (isLoading) return <LoadingState label="Loading deadlines…" />
-  if (error) return <p className="text-sm text-red-600">Couldn’t load deadlines: {error.message}</p>
+  if (error) return <p className="text-sm text-hud-crit">Couldn’t load deadlines: {error.message}</p>
 
   return (
-    <section aria-labelledby="deadlines-heading">
-      <h2 id="deadlines-heading" className="mb-2 text-sm font-semibold text-neutral-500 dark:text-neutral-400">
+    <section aria-labelledby="deadlines-heading" className="hud-panel">
+      <h2 id="deadlines-heading" className="hud-label mb-2.5">
         Deadlines
       </h2>
       {filtered.length === 0 ? (
-        <p className="text-sm text-neutral-500">No deadlines in view.</p>
+        <p className="text-sm text-hud-muted">No deadlines in view.</p>
       ) : (
         <ul className="max-h-[280px] space-y-1.5 overflow-y-auto">
           {filtered.map((d) => {
@@ -34,17 +34,17 @@ export default function DeadlinesList({ contextsById, domain, contextId }) {
               <li
                 key={d.id}
                 className={clsx(
-                  'flex items-center gap-3 rounded-lg border px-3 py-2 text-sm',
+                  'flex items-center gap-3 rounded border px-3 py-2 text-sm',
                   overdue
-                    ? 'border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950/40'
-                    : 'border-neutral-200 dark:border-neutral-800'
+                    ? 'border-hud-crit/50 [box-shadow:0_0_14px_rgba(255,107,107,0.12)]'
+                    : 'border-hud-accent/15'
                 )}
               >
-                <span className={clsx('min-w-0 flex-1 truncate font-medium', d.status !== 'upcoming' && 'text-neutral-400 line-through')}>
+                <span className={clsx('min-w-0 flex-1 truncate font-medium', d.status !== 'upcoming' && 'text-hud-muted line-through')}>
                   {d.title}
                 </span>
-                <span className={clsx('shrink-0 text-xs', overdue ? 'font-semibold text-red-600 dark:text-red-400' : 'text-neutral-500')}>
-                  {overdue ? 'Overdue — ' : ''}
+                <span className={clsx('shrink-0 font-mono text-xs', overdue ? 'font-semibold text-hud-crit' : 'text-hud-muted')}>
+                  {overdue ? 'OVERDUE — ' : ''}
                   {formatDateTime(d.due_at)}
                 </span>
                 <ContextBadge context={contextsById.get(d.context_id)} />

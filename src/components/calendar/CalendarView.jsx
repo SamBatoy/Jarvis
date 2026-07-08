@@ -113,7 +113,7 @@ export default function CalendarView() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold">{title}</h1>
         <div className="flex items-center gap-2">
-          <div className="flex rounded-lg border border-neutral-200 p-0.5 dark:border-neutral-800">
+          <div className="flex rounded-lg border border-hud-accent/20 p-0.5">
             {MODES.map((m) => (
               <button
                 key={m.key}
@@ -122,8 +122,8 @@ export default function CalendarView() {
                 className={clsx(
                   'rounded-md px-3 py-1.5 text-sm font-medium transition-colors duration-150',
                   mode === m.key
-                    ? 'bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900'
-                    : 'text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800'
+                    ? 'bg-hud-accent text-hud-bg [box-shadow:0_0_12px_rgba(56,225,255,0.4)]'
+                    : 'text-hud-muted hover:bg-hud-accent/10 hover:text-hud-text'
                 )}
               >
                 {m.label}
@@ -133,20 +133,20 @@ export default function CalendarView() {
           <button
             onClick={() => navigate(-1)}
             aria-label="Previous"
-            className="rounded-md border border-neutral-300 px-2 py-1.5 text-sm transition-colors duration-150 hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
+            className="hud-btn !px-2"
           >
             ‹
           </button>
           <button
             onClick={() => setDateParam(format(new Date(), 'yyyy-MM-dd'))}
-            className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm font-medium transition-colors duration-150 hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
+            className="hud-btn"
           >
             Today
           </button>
           <button
             onClick={() => navigate(1)}
             aria-label="Next"
-            className="rounded-md border border-neutral-300 px-2 py-1.5 text-sm transition-colors duration-150 hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
+            className="hud-btn !px-2"
           >
             ›
           </button>

@@ -15,19 +15,19 @@ function MorningBriefCard() {
   const { topPriorities, dueToday, suggestedFocus } = brief.content
 
   return (
-    <div className="rounded-xl border border-neutral-200 p-4 dark:border-neutral-800">
+    <div className="hud-panel">
       <div className="mb-2 flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-neutral-500 dark:text-neutral-400">Morning Brief</h2>
-        <span className="text-xs text-neutral-400">{formatBriefDate(brief.brief_date)}</span>
+        <h2 className="hud-label">Morning Brief</h2>
+        <span className="font-mono text-xs text-hud-muted">{formatBriefDate(brief.brief_date)}</span>
       </div>
       <p className="text-sm font-medium">{suggestedFocus}</p>
       {dueToday?.length > 0 && (
-        <p className="mt-2 text-xs text-neutral-500">
+        <p className="mt-2 text-xs text-hud-muted">
           Due today: {dueToday.map((d) => d.title).join(', ')}
         </p>
       )}
       {topPriorities?.length > 0 && (
-        <p className="mt-1 text-xs text-neutral-500">
+        <p className="mt-1 text-xs text-hud-muted">
           Top priorities: {topPriorities.map((t) => t.title).join(', ')}
         </p>
       )}
@@ -69,8 +69,8 @@ function MissedReasonPicker({ slipped }) {
   }
 
   return (
-    <div className="mt-3 border-t border-neutral-200 pt-2 dark:border-neutral-800">
-      <p className="text-xs font-medium text-neutral-500">Why were these missed?</p>
+    <div className="mt-3 border-t border-hud-accent/15 pt-2">
+      <p className="text-xs font-medium text-hud-muted">Why were these missed?</p>
       <ul className="mt-1 space-y-1.5">
         {unanswered.map((item) => (
           <li key={item.id} className="flex items-center gap-2 text-xs">
@@ -78,7 +78,7 @@ function MissedReasonPicker({ slipped }) {
             <select
               value={selections[item.id] ?? ''}
               onChange={(e) => setSelections((prev) => ({ ...prev, [item.id]: e.target.value }))}
-              className="rounded border border-neutral-300 px-1.5 py-0.5 dark:border-neutral-700 dark:bg-neutral-800"
+              className="hud-input !px-1.5 !py-0.5 !text-xs"
             >
               <option value="">Choose…</option>
               {REASON_OPTIONS.map((o) => (
@@ -90,11 +90,8 @@ function MissedReasonPicker({ slipped }) {
           </li>
         ))}
       </ul>
-      <button
-        onClick={handleSave}
-        className="mt-2 rounded bg-neutral-900 px-2 py-1 text-xs font-medium text-white transition-colors duration-150 hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-300"
-      >
-        Save
+      <button onClick={handleSave} className="hud-btn-primary mt-2 !px-2 !py-1">
+        SAVE
       </button>
     </div>
   )
@@ -108,18 +105,18 @@ function NightReviewCard() {
   const { completed, slipped, reflection } = brief.content
 
   return (
-    <div className="rounded-xl border border-neutral-200 p-4 dark:border-neutral-800">
+    <div className="hud-panel">
       <div className="mb-2 flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-neutral-500 dark:text-neutral-400">Night Review</h2>
-        <span className="text-xs text-neutral-400">{formatBriefDate(brief.brief_date)}</span>
+        <h2 className="hud-label">Night Review</h2>
+        <span className="font-mono text-xs text-hud-muted">{formatBriefDate(brief.brief_date)}</span>
       </div>
       <p className="text-sm">{reflection}</p>
       {completed?.length > 0 && (
-        <p className="mt-2 text-xs text-emerald-700 dark:text-emerald-400">Completed: {completed.map((c) => c.title).join(', ')}</p>
+        <p className="mt-2 text-xs text-hud-good">Completed: {completed.map((c) => c.title).join(', ')}</p>
       )}
       {slipped?.length > 0 && (
         <>
-          <p className="mt-1 text-xs text-red-600 dark:text-red-400">Slipped: {slipped.map((s) => s.title).join(', ')}</p>
+          <p className="mt-1 text-xs text-hud-crit">Slipped: {slipped.map((s) => s.title).join(', ')}</p>
           <MissedReasonPicker slipped={slipped} />
         </>
       )}

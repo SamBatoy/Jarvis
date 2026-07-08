@@ -95,20 +95,20 @@ export default function FocusMode({ onClose }) {
       role="dialog"
       aria-modal="true"
       aria-label="Focus Mode"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose()
       }}
     >
-      <div className="w-full max-w-xl rounded-2xl bg-white p-8 shadow-2xl dark:bg-neutral-900">
+      <div className="hud-panel w-full max-w-xl !bg-hud-panel p-8 shadow-2xl">
         <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
+          <h2 className="hud-label !text-xs">
             Focus Mode
           </h2>
           <button
             onClick={onClose}
             aria-label="Close Focus Mode"
-            className="rounded-md p-1 text-neutral-500 transition-colors duration-150 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+            className="rounded-md p-1 text-hud-muted transition-colors duration-150 hover:bg-hud-accent/10 hover:text-hud-text"
           >
             ✕
           </button>
@@ -119,7 +119,7 @@ export default function FocusMode({ onClose }) {
             <LoadingState label="Loading tasks…" />
           </div>
         ) : !selectedTodo ? (
-          <p className="text-center text-sm text-neutral-500">No active tasks — nothing to focus on right now.</p>
+          <p className="text-center text-sm text-hud-muted">No active tasks — nothing to focus on right now.</p>
         ) : (
           <>
             <label className="sr-only" htmlFor="focus-task-picker">
@@ -129,7 +129,7 @@ export default function FocusMode({ onClose }) {
               id="focus-task-picker"
               value={selectedId ?? ''}
               onChange={(e) => setSelectedId(e.target.value)}
-              className="mb-4 w-full rounded-md border border-neutral-300 px-3 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-800"
+              className="hud-input mb-4 w-full"
             >
               {activeTodos.map((t) => (
                 <option key={t.id} value={t.id}>
@@ -140,14 +140,23 @@ export default function FocusMode({ onClose }) {
 
             <h1 className="mb-6 text-center text-2xl font-bold">{selectedTodo.title}</h1>
 
-            <div className="mb-6 text-center font-mono text-5xl tabular-nums" aria-live="polite">
+            {/* Breathing glow only while the timer is actually running —
+                motion as a state indicator, not decoration. Static glow
+                when paused/stopped. */}
+            <div
+              className={clsx(
+                'mb-6 text-center font-mono text-5xl tabular-nums text-hud-accent',
+                running ? 'hud-text-pulse' : '[text-shadow:0_0_16px_rgba(56,225,255,0.35)]'
+              )}
+              aria-live="polite"
+            >
               {formatElapsed(elapsedSeconds)}
             </div>
 
             <div className="mb-6 flex justify-center gap-2">
               <button
                 onClick={() => setRunning((r) => !r)}
-                className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-300"
+                className="hud-btn-primary !px-4 !py-2"
               >
                 {running ? 'Pause' : 'Start'}
               </button>
@@ -156,7 +165,7 @@ export default function FocusMode({ onClose }) {
                   setElapsedSeconds(0)
                   setRunning(false)
                 }}
-                className="rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium transition-colors duration-150 hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                className="hud-btn !px-4 !py-2"
               >
                 Reset
               </button>
@@ -164,10 +173,10 @@ export default function FocusMode({ onClose }) {
                 onClick={toggleSound}
                 aria-pressed={soundOn}
                 className={clsx(
-                  'rounded-md border px-4 py-2 text-sm font-medium transition-colors duration-150 hover:bg-neutral-100 dark:hover:bg-neutral-800',
+                  'rounded border px-4 py-2 font-mono text-xs tracking-wide transition-all duration-150 hover:[box-shadow:0_0_14px_rgba(56,225,255,0.35)]',
                   soundOn
-                    ? 'border-neutral-900 dark:border-neutral-100'
-                    : 'border-neutral-300 dark:border-neutral-700'
+                    ? 'border-hud-accent text-hud-accent'
+                    : 'border-hud-accent/30 text-hud-muted'
                 )}
               >
                 {soundOn ? 'Sound: On' : 'Sound: Off'}
@@ -183,12 +192,12 @@ export default function FocusMode({ onClose }) {
               onChange={(e) => setNotes(e.target.value)}
               onBlur={handleNotesBlur}
               rows={3}
-              className="mb-6 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-800"
+              className="hud-input mb-6 w-full !py-2"
             />
 
             <button
               onClick={handleMarkDone}
-              className="w-full rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-emerald-700"
+              className="w-full rounded border border-hud-good bg-hud-good/15 px-4 py-2 font-mono text-xs tracking-wide text-hud-good transition-all duration-150 hover:bg-hud-good/25 hover:[box-shadow:0_0_18px_rgba(61,214,140,0.4)]"
             >
               Mark Done
             </button>

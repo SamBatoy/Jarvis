@@ -84,13 +84,13 @@ export default function BreakTodoIntoStepsModal({ todo, onClose }) {
 
   return (
     <Modal title={`Break "${todo.title}" into steps`} onClose={onClose}>
-      {phase === 'previewing' && <p className="text-sm text-neutral-500">Generating breakdown…</p>}
-      {phase === 'error' && <p className="text-sm text-red-600 dark:text-red-400">{errorMsg}</p>}
+      {phase === 'previewing' && <p className="text-sm text-hud-muted">Generating breakdown…</p>}
+      {phase === 'error' && <p className="text-sm text-hud-crit">{errorMsg}</p>}
       {preview && (
         <div className="space-y-3">
           <div>
             <p className="text-sm font-medium">{preview.parent.title}</p>
-            <p className="text-xs text-neutral-500">
+            <p className="text-xs text-hud-muted">
               Due {formatDateTime(preview.parent.due_date)} · {preview.children.length} subtasks
             </p>
             <ol className="mt-2 space-y-1 text-xs">
@@ -99,19 +99,19 @@ export default function BreakTodoIntoStepsModal({ todo, onClose }) {
                   <span>
                     {i + 1}. {c.title}
                   </span>
-                  <span className="shrink-0 text-neutral-500">{formatDateTime(c.due_date)}</span>
+                  <span className="shrink-0 font-mono text-hud-muted">{formatDateTime(c.due_date)}</span>
                 </li>
               ))}
             </ol>
           </div>
-          {errorMsg && <p className="text-xs text-red-600 dark:text-red-400">{errorMsg}</p>}
+          {errorMsg && <p className="text-xs text-hud-crit">{errorMsg}</p>}
           {phase === 'done' ? (
-            <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400">✓ Created — original task replaced</p>
+            <p className="text-sm font-medium text-hud-good">✓ Created — original task replaced</p>
           ) : (
             <button
               onClick={handleConfirm}
               disabled={phase === 'applying'}
-              className="w-full rounded-md bg-neutral-900 px-4 py-1.5 text-sm font-medium text-white transition-colors duration-150 hover:bg-neutral-700 disabled:opacity-50 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-300"
+              className="w-full hud-btn-primary !px-4"
             >
               {phase === 'applying' ? 'Creating…' : 'Confirm'}
             </button>

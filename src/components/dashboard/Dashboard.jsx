@@ -61,37 +61,32 @@ export default function Dashboard() {
   }
 
   if (contextsLoading) return <div className="p-6"><LoadingState label="Loading dashboard…" /></div>
-  if (contextsError) return <p className="p-6 text-sm text-red-600">Couldn’t load contexts: {contextsError.message}</p>
+  if (contextsError) return <p className="p-6 text-sm text-hud-crit">Couldn’t load contexts: {contextsError.message}</p>
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-6">
       <header className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold">Jarvis</h1>
+        <h1 className="font-mono text-2xl font-bold tracking-[0.28em] [text-shadow:0_0_18px_rgba(56,225,255,0.55)]">
+          JAR<span className="text-hud-accent">VIS</span>
+        </h1>
         <div className="flex flex-wrap gap-2">
-          <QuickAddButton label="+ Todo" onClick={() => setModal({ type: 'todo' })} />
-          <QuickAddButton label="+ Event" onClick={() => setModal({ type: 'event' })} />
-          <QuickAddButton label="+ Deadline" onClick={() => setModal({ type: 'deadline' })} />
-          <QuickAddButton label="+ Goal" onClick={() => setModal({ type: 'goal' })} />
-          <QuickAddButton label="+ Subject/Project" onClick={() => setModal({ type: 'context' })} />
-          <button
-            onClick={() => setFocusModeOpen(true)}
-            className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white transition-colors duration-150 hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-300"
-          >
-            Focus Mode
+          <QuickAddButton label="+ TODO" onClick={() => setModal({ type: 'todo' })} />
+          <QuickAddButton label="+ EVENT" onClick={() => setModal({ type: 'event' })} />
+          <QuickAddButton label="+ DEADLINE" onClick={() => setModal({ type: 'deadline' })} />
+          <QuickAddButton label="+ GOAL" onClick={() => setModal({ type: 'goal' })} />
+          <QuickAddButton label="+ SUBJECT/PROJECT" onClick={() => setModal({ type: 'context' })} />
+          <button onClick={() => setFocusModeOpen(true)} className="hud-btn-primary hud-pulse">
+            FOCUS MODE
           </button>
-          <button
-            onClick={handleBalanceWeek}
-            disabled={rebalance === 'loading'}
-            className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm font-medium transition-colors duration-150 hover:bg-neutral-100 disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-800"
-          >
-            {rebalance === 'loading' ? 'Checking week…' : 'Balance my week'}
+          <button onClick={handleBalanceWeek} disabled={rebalance === 'loading'} className="hud-btn">
+            {rebalance === 'loading' ? 'CHECKING WEEK…' : 'BALANCE MY WEEK'}
           </button>
         </div>
       </header>
 
       {rebalance && rebalance !== 'loading' && (
-        <div className="rounded-lg border border-neutral-200 p-3 dark:border-neutral-800">
-          {rebalance.message && <p className="text-sm text-neutral-600 dark:text-neutral-400">{rebalance.message}</p>}
+        <div className="hud-panel !p-3">
+          {rebalance.message && <p className="text-sm text-hud-muted">{rebalance.message}</p>}
           {rebalance.proposal && <ProposalCard proposal={rebalance.proposal} source="dashboard" />}
         </div>
       )}
@@ -124,12 +119,12 @@ export default function Dashboard() {
         <div className="space-y-6">
           <GoalsPanel />
           <LearningPathsPanel />
-          <section aria-labelledby="contexts-heading">
-            <h2 id="contexts-heading" className="mb-2 text-sm font-semibold text-neutral-500 dark:text-neutral-400">
+          <section aria-labelledby="contexts-heading" className="hud-panel">
+            <h2 id="contexts-heading" className="hud-label mb-2.5">
               Subjects & Projects
             </h2>
             {(contexts ?? []).length === 0 && (
-              <p className="text-sm text-neutral-500">
+              <p className="text-sm text-hud-muted">
                 No subjects or projects yet — use + Subject/Project above to add one.
               </p>
             )}
@@ -167,10 +162,7 @@ export default function Dashboard() {
 
 function QuickAddButton({ label, onClick }) {
   return (
-    <button
-      onClick={onClick}
-      className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm font-medium transition-colors duration-150 hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
-    >
+    <button onClick={onClick} className="hud-btn">
       {label}
     </button>
   )

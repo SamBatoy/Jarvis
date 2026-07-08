@@ -71,7 +71,7 @@ export default function ContextForm({ context, allContexts, onClose }) {
         {!isEdit && (
           <div>
             <label className="mb-1 block text-sm font-medium">Type</label>
-            <div className="flex rounded-lg border border-neutral-200 p-0.5 dark:border-neutral-800">
+            <div className="flex rounded-lg border border-hud-accent/20 p-0.5">
               {['subject', 'project'].map((t) => (
                 <button
                   key={t}
@@ -79,8 +79,8 @@ export default function ContextForm({ context, allContexts, onClose }) {
                   onClick={() => setType(t)}
                   className={`flex-1 rounded-md py-1.5 text-sm font-medium ${
                     type === t
-                      ? 'bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900'
-                      : 'text-neutral-600 dark:text-neutral-400'
+                      ? 'bg-hud-accent text-hud-bg [box-shadow:0_0_12px_rgba(56,225,255,0.4)]'
+                      : 'text-hud-muted'
                   }`}
                 >
                   {t === 'subject' ? 'Subject' : 'Project'}
@@ -97,7 +97,7 @@ export default function ContextForm({ context, allContexts, onClose }) {
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full rounded-md border border-neutral-300 px-3 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-800"
+              className="hud-input w-full"
             />
           </div>
           {isEdit && (
@@ -107,7 +107,7 @@ export default function ContextForm({ context, allContexts, onClose }) {
                 type="color"
                 value={color}
                 onChange={(e) => setColor(e.target.value)}
-                className="h-9 w-12 rounded border border-neutral-300 dark:border-neutral-700"
+                className="h-9 w-12 rounded border border-hud-accent/25"
               />
             </div>
           )}
@@ -120,13 +120,13 @@ export default function ContextForm({ context, allContexts, onClose }) {
               <input
                 value={instructor}
                 onChange={(e) => setInstructor(e.target.value)}
-                className="w-full rounded-md border border-neutral-300 px-3 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-800"
+                className="hud-input w-full"
               />
             </div>
             <div>
               <div className="mb-1 flex items-center justify-between">
                 <label className="block text-sm font-medium">Class schedule</label>
-                <button type="button" onClick={addSlot} className="text-xs text-blue-600 hover:underline dark:text-blue-400">
+                <button type="button" onClick={addSlot} className="text-xs text-hud-accent hover:underline">
                   + add time
                 </button>
               </div>
@@ -136,7 +136,7 @@ export default function ContextForm({ context, allContexts, onClose }) {
                     <select
                       value={slot.day_of_week}
                       onChange={(e) => updateSlot(i, { day_of_week: Number(e.target.value) })}
-                      className="rounded-md border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800"
+                      className="hud-input !px-2 !py-1"
                     >
                       {DAY_OPTIONS.map((d) => (
                         <option key={d} value={d}>
@@ -148,20 +148,20 @@ export default function ContextForm({ context, allContexts, onClose }) {
                       type="time"
                       value={slot.start_time}
                       onChange={(e) => updateSlot(i, { start_time: e.target.value })}
-                      className="rounded-md border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800"
+                      className="hud-input !px-2 !py-1"
                     />
-                    <span className="text-sm text-neutral-500">to</span>
+                    <span className="text-sm text-hud-muted">to</span>
                     <input
                       type="time"
                       value={slot.end_time}
                       onChange={(e) => updateSlot(i, { end_time: e.target.value })}
-                      className="rounded-md border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800"
+                      className="hud-input !px-2 !py-1"
                     />
                     <button
                       type="button"
                       onClick={() => removeSlot(i)}
                       aria-label="Remove time slot"
-                      className="ml-auto text-neutral-400 hover:text-red-600"
+                      className="ml-auto text-hud-muted transition-colors duration-150 hover:text-hud-crit"
                     >
                       ✕
                     </button>
@@ -178,7 +178,7 @@ export default function ContextForm({ context, allContexts, onClose }) {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={2}
-                className="w-full rounded-md border border-neutral-300 px-3 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-800"
+                className="hud-input w-full"
               />
             </div>
             <div>
@@ -186,7 +186,7 @@ export default function ContextForm({ context, allContexts, onClose }) {
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                className="w-full rounded-md border border-neutral-300 px-3 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-800"
+                className="hud-input w-full"
               >
                 <option value="active">Active</option>
                 <option value="shipped">Shipped</option>
@@ -197,7 +197,7 @@ export default function ContextForm({ context, allContexts, onClose }) {
         )}
 
         {saveError && (
-          <p role="alert" className="text-xs text-red-600 dark:text-red-400">
+          <p role="alert" className="text-xs text-hud-crit">
             {saveError.message}
           </p>
         )}
@@ -213,7 +213,7 @@ export default function ContextForm({ context, allContexts, onClose }) {
           <button
             type="submit"
             disabled={saving}
-            className="rounded-md bg-neutral-900 px-4 py-1.5 text-sm font-medium text-white transition-colors duration-150 hover:bg-neutral-700 disabled:opacity-50 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-300"
+            className="hud-btn-primary !px-4"
           >
             {isEdit ? 'Save' : 'Create'}
           </button>

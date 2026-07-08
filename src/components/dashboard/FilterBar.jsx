@@ -10,7 +10,7 @@ const DOMAIN_OPTIONS = [
 export default function FilterBar({ contexts, domain, onDomainChange, contextId, onContextChange }) {
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <div className="flex rounded-lg border border-neutral-200 p-0.5 dark:border-neutral-800">
+      <div className="flex rounded-lg border border-hud-accent/20 p-0.5">
         {DOMAIN_OPTIONS.map((opt) => (
           <button
             key={opt.key}
@@ -20,10 +20,10 @@ export default function FilterBar({ contexts, domain, onDomainChange, contextId,
               onContextChange(null)
             }}
             className={clsx(
-              'cursor-pointer rounded-md px-3 py-1.5 text-sm font-medium transition-colors duration-150',
+              'cursor-pointer rounded-md px-3 py-1.5 text-sm font-medium transition-all duration-150',
               domain === opt.key && !contextId
-                ? 'bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900'
-                : 'text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800'
+                ? 'bg-hud-accent text-hud-bg [box-shadow:0_0_12px_rgba(56,225,255,0.4)]'
+                : 'text-hud-muted hover:bg-hud-accent/10 hover:text-hud-text'
             )}
           >
             {opt.label}
@@ -39,7 +39,7 @@ export default function FilterBar({ contexts, domain, onDomainChange, contextId,
               aria-pressed={contextId === c.id}
               onClick={() => onContextChange(contextId === c.id ? null : c.id)}
               className={clsx(
-                'cursor-pointer rounded-full opacity-90 ring-offset-2 transition-opacity duration-150 hover:opacity-100 dark:ring-offset-neutral-950',
+                'cursor-pointer rounded-full opacity-90 ring-offset-2 ring-offset-hud-bg transition-opacity duration-150 hover:opacity-100',
                 contextId === c.id && 'ring-2 opacity-100'
               )}
               style={contextId === c.id ? { '--tw-ring-color': c.color } : undefined}

@@ -3,16 +3,43 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: light dark;
+  /* HUD redesign: dark-only by design — a holographic HUD is a dark
+     instrument panel; there is no light variant. */
+  color-scheme: dark;
 }
 
 body {
-  @apply bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100;
+  @apply bg-hud-bg text-hud-text;
+  /* Faint grid texture, kept far below content contrast. The scan-line
+     layer sits on body::before so it never intercepts pointer events. */
+  background-image: linear-gradient(rgba(56, 225, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56, 225, 255, 0.035) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0.015) 0px,
+    rgba(255, 255, 255, 0.015) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
+#root {
+  position: relative;
+  z-index: 1;
 }
 
 @layer base {
   :focus-visible {
-    @apply outline outline-2 outline-offset-2 outline-blue-500;
+    @apply outline outline-2 outline-offset-2 outline-hud-accent;
   }
 
   /* Tailwind's preflight resets <button> to cursor: default. Nearly every
@@ -26,6 +53,101 @@ body {
   [role='button'][aria-disabled='true'] {
     cursor: not-allowed;
   }
+}
+
+@layer components {
+  /* Glass section panel with thin glow border + HUD corner brackets.
+     Glass (backdrop-blur) goes on section-level panels only — never on
+     per-row elements, where it would repaint on every scroll frame. */
+  .hud-panel {
+    @apply relative rounded-md border border-hud-accent/25 bg-hud-panel/55 p-4 backdrop-blur-md;
+    box-shadow:
+      0 0 24px rgba(56, 225, 255, 0.06),
+      inset 0 0 32px rgba(56, 225, 255, 0.03);
+  }
+  .hud-panel::before,
+  .hud-panel::after {
+    content: '';
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border-color: theme('colors.hud.accent');
+    border-style: solid;
+    opacity: 0.75;
+    pointer-events: none;
+  }
+  .hud-panel::before {
+    top: -1px;
+    left: -1px;
+    border-width: 2px 0 0 2px;
+    border-radius: 4px 0 0 0;
+  }
+  .hud-panel::after {
+    bottom: -1px;
+    right: -1px;
+    border-width: 0 2px 2px 0;
+    border-radius: 0 0 4px 0;
+  }
+
+  /* Section heading: mono, uppercase, letterspaced, cyan. */
+  .hud-label {
+    @apply font-mono text-[10px] uppercase tracking-[0.18em] text-hud-accent;
+  }
+
+  /* Standard HUD button (bordered, glow on hover). */
+  .hud-btn {
+    @apply rounded border border-hud-accent/30 bg-hud-accent/10 px-3 py-1.5 font-mono text-xs tracking-wide text-hud-text transition-all duration-150 hover:border-hud-accent disabled:pointer-events-none disabled:opacity-50;
+  }
+  .hud-btn:hover {
+    box-shadow: 0 0 14px rgba(56, 225, 255, 0.35);
+  }
+
+  /* Primary HUD button (filled accent treatment). */
+  .hud-btn-primary {
+    @apply rounded border border-hud-accent bg-hud-accent/20 px-3 py-1.5 font-mono text-xs tracking-wide text-hud-accent transition-all duration-150 disabled:pointer-events-none disabled:opacity-50;
+  }
+  .hud-btn-primary:hover {
+    box-shadow: 0 0 18px rgba(56, 225, 255, 0.5);
+  }
+
+  /* Form input / select / textarea. */
+  .hud-input {
+    /* Full-strength muted for placeholders: /70 measured 3.66:1 inside
+       the input — under the 4.5:1 requirement, which applies to
+       placeholder text too. */
+    @apply rounded border border-hud-accent/25 bg-hud-panel/60 px-3 py-1.5 text-sm text-hud-text placeholder:text-hud-muted;
+  }
+}
+
+/* ── Micro-animations ─────────────────────────────────────────────────
+   Deliberately scarce: one ambient pulse on the single most prominent
+   action (Focus Mode), and a breathing glow on the focus timer while it
+   is actually running — motion that communicates state, not decoration.
+   Both are neutralized by the prefers-reduced-motion rule below. */
+@keyframes hud-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 8px rgba(56, 225, 255, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(56, 225, 255, 0.55);
+  }
+}
+.hud-pulse {
+  animation: hud-pulse 2.6s ease-in-out infinite;
+}
+
+@keyframes hud-text-pulse {
+  0%,
+  100% {
+    text-shadow: 0 0 16px rgba(56, 225, 255, 0.35);
+  }
+  50% {
+    text-shadow: 0 0 28px rgba(56, 225, 255, 0.7);
+  }
+}
+.hud-text-pulse {
+  animation: hud-text-pulse 2s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {

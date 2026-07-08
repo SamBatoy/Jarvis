@@ -12,14 +12,14 @@ export default function MonthGrid({ cursorDate, itemsByDay, onSelectDay }) {
 
   return (
     <div>
-      <div className="grid grid-cols-7 text-center text-xs font-medium text-neutral-500 dark:text-neutral-400">
+      <div className="grid grid-cols-7 text-center font-mono text-[10px] uppercase tracking-widest text-hud-muted">
         {DAY_HEADERS.map((d) => (
           <div key={d} className="py-1">
             {d}
           </div>
         ))}
       </div>
-      <div className="grid grid-cols-7 gap-px overflow-hidden rounded-lg border border-neutral-200 bg-neutral-200 dark:border-neutral-800 dark:bg-neutral-800">
+      <div className="grid grid-cols-7 gap-px overflow-hidden rounded-lg border border-hud-accent/25 bg-hud-accent/15">
         {days.map((day) => {
           const key = format(day, 'yyyy-MM-dd')
           const count = itemsByDay.get(key)?.length ?? 0
@@ -30,14 +30,19 @@ export default function MonthGrid({ cursorDate, itemsByDay, onSelectDay }) {
               onClick={() => onSelectDay(day)}
               aria-label={`${format(day, 'MMMM d, yyyy')}${count > 0 ? `, ${count} item${count > 1 ? 's' : ''}` : ''}`}
               className={clsx(
-                'flex h-20 flex-col items-start gap-1 bg-white p-1.5 text-left transition-colors duration-150 hover:bg-neutral-50 dark:bg-neutral-900 dark:hover:bg-neutral-800',
-                !inMonth && 'text-neutral-300 dark:text-neutral-600',
-                isToday(day) && 'ring-2 ring-inset ring-blue-500'
+                'flex h-20 flex-col items-start gap-1 bg-hud-bg p-1.5 text-left transition-colors duration-150 hover:bg-hud-accent/10',
+                // Plain hud-muted, not an opacity-reduced variant: /40
+                // measured 1.98:1 against the cell background — failing
+                // WCAG badly. In-month days use the default near-white
+                // text (15.7:1), so muted (6.7:1) still reads clearly as
+                // "not this month" while staying legible.
+                !inMonth && 'text-hud-muted',
+                isToday(day) && 'ring-2 ring-inset ring-hud-accent'
               )}
             >
-              <span className="text-xs">{format(day, 'd')}</span>
+              <span className="font-mono text-xs">{format(day, 'd')}</span>
               {count > 0 && (
-                <span className="rounded-full bg-blue-100 px-1.5 text-[10px] font-medium text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+                <span className="rounded-full bg-hud-accent/15 px-1.5 font-mono text-[10px] font-medium text-hud-accent">
                   {count}
                 </span>
               )}

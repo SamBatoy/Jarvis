@@ -106,7 +106,7 @@ export default function TurnSkillIntoTodosModal({ skill, path, contexts, onClose
                     value={selectedContextId}
                     onChange={(e) => setSelectedContextId(e.target.value)}
                     disabled={mode !== 'existing'}
-                    className="rounded-md border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800"
+                    className="hud-input !px-2 !py-1"
                   >
                     {contexts.map((c) => (
                       <option key={c.id} value={c.id}>
@@ -123,7 +123,7 @@ export default function TurnSkillIntoTodosModal({ skill, path, contexts, onClose
                   value={newContextName}
                   onChange={(e) => setNewContextName(e.target.value)}
                   disabled={mode !== 'new'}
-                  className="flex-1 rounded-md border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800"
+                  className="hud-input flex-1 !px-2 !py-1"
                 />
               </label>
             </div>
@@ -134,14 +134,14 @@ export default function TurnSkillIntoTodosModal({ skill, path, contexts, onClose
               type="datetime-local"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
-              className="w-full rounded-md border border-neutral-300 px-3 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-800"
+              className="hud-input w-full"
             />
           </div>
-          {errorMsg && <p className="text-xs text-red-600 dark:text-red-400">{errorMsg}</p>}
+          {errorMsg && <p className="text-xs text-hud-crit">{errorMsg}</p>}
           <button
             onClick={handlePreview}
             disabled={phase === 'previewing'}
-            className="w-full rounded-md bg-neutral-900 px-4 py-1.5 text-sm font-medium text-white transition-colors duration-150 hover:bg-neutral-700 disabled:opacity-50 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-300"
+            className="w-full hud-btn-primary !px-4"
           >
             {phase === 'previewing' ? 'Generating breakdown…' : 'Preview'}
           </button>
@@ -155,34 +155,34 @@ export default function TurnSkillIntoTodosModal({ skill, path, contexts, onClose
           )}
           <div>
             <p className="text-sm font-medium">{scaffoldPreview.parent.title}</p>
-            <p className="text-xs text-neutral-500">
+            <p className="text-xs text-hud-muted">
               Due {formatDateTime(scaffoldPreview.parent.due_date)} · {scaffoldPreview.children.length} subtasks
             </p>
             <ol className="mt-2 space-y-1 text-xs">
               {scaffoldPreview.children.map((c, i) => (
                 <li key={i} className="flex justify-between gap-2">
                   <span>{i + 1}. {c.title}</span>
-                  <span className="shrink-0 text-neutral-500">{formatDateTime(c.due_date)}</span>
+                  <span className="shrink-0 font-mono text-hud-muted">{formatDateTime(c.due_date)}</span>
                 </li>
               ))}
             </ol>
           </div>
-          {errorMsg && <p className="text-xs text-red-600 dark:text-red-400">{errorMsg}</p>}
+          {errorMsg && <p className="text-xs text-hud-crit">{errorMsg}</p>}
           {phase === 'done' ? (
-            <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400">✓ Created</p>
+            <p className="text-sm font-medium text-hud-good">✓ Created</p>
           ) : (
             <div className="flex gap-2">
               <button
                 onClick={handleConfirm}
                 disabled={phase === 'applying'}
-                className="rounded-md bg-neutral-900 px-4 py-1.5 text-sm font-medium text-white transition-colors duration-150 hover:bg-neutral-700 disabled:opacity-50 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-300"
+                className="hud-btn-primary !px-4"
               >
                 {phase === 'applying' ? 'Creating…' : 'Confirm'}
               </button>
               <button
                 onClick={() => setPhase('choose')}
                 disabled={phase === 'applying'}
-                className="rounded-md border border-neutral-300 px-4 py-1.5 text-sm font-medium dark:border-neutral-700"
+                className="hud-btn !px-4"
               >
                 Back
               </button>

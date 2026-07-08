@@ -44,7 +44,7 @@ export default function GoalForm({ goal, onClose }) {
             required
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full rounded-md border border-neutral-300 px-3 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-800"
+            className="hud-input w-full"
           />
         </div>
         <div>
@@ -53,7 +53,7 @@ export default function GoalForm({ goal, onClose }) {
             value={whyItMatters}
             onChange={(e) => setWhyItMatters(e.target.value)}
             rows={2}
-            className="w-full rounded-md border border-neutral-300 px-3 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-800"
+            className="hud-input w-full"
           />
         </div>
         <div>
@@ -62,7 +62,7 @@ export default function GoalForm({ goal, onClose }) {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={2}
-            className="w-full rounded-md border border-neutral-300 px-3 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-800"
+            className="hud-input w-full"
           />
         </div>
         <div className="grid grid-cols-2 gap-3">
@@ -72,7 +72,7 @@ export default function GoalForm({ goal, onClose }) {
               type="date"
               value={targetDate}
               onChange={(e) => setTargetDate(e.target.value)}
-              className="w-full rounded-md border border-neutral-300 px-3 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-800"
+              className="hud-input w-full"
             />
           </div>
           <div>
@@ -80,7 +80,7 @@ export default function GoalForm({ goal, onClose }) {
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              className="w-full rounded-md border border-neutral-300 px-3 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-800"
+              className="hud-input w-full"
             >
               <option value="active">Active</option>
               <option value="achieved">Achieved</option>
@@ -89,7 +89,7 @@ export default function GoalForm({ goal, onClose }) {
           </div>
         </div>
         {saveError && (
-          <p role="alert" className="text-xs text-red-600 dark:text-red-400">
+          <p role="alert" className="text-xs text-hud-crit">
             {saveError.message}
           </p>
         )}
@@ -105,7 +105,7 @@ export default function GoalForm({ goal, onClose }) {
           <button
             type="submit"
             disabled={saving}
-            className="rounded-md bg-neutral-900 px-4 py-1.5 text-sm font-medium text-white transition-colors duration-150 hover:bg-neutral-700 disabled:opacity-50 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-300"
+            className="hud-btn-primary !px-4"
           >
             {isEdit ? 'Save' : 'Create'}
           </button>

@@ -8,18 +8,22 @@ const VIEWS = [
 ]
 
 export default function ViewTabs({ view, onViewChange }) {
+  // overflow-x-auto + shrink-0: the mono uppercase labels are wider than
+  // the old proportional ones, and at 375px flex otherwise shrinks the
+  // last tab until its text clips. Scrolling inside the nav keeps every
+  // tab reachable without the page itself scrolling sideways.
   return (
-    <nav aria-label="Views" className="flex gap-1 border-b border-neutral-200 px-6 pt-3 dark:border-neutral-800">
+    <nav aria-label="Views" className="flex gap-1 overflow-x-auto border-b border-hud-accent/20 px-4 pt-3 sm:px-6">
       {VIEWS.map((v) => (
         <button
           key={v.key}
           aria-current={view === v.key ? 'page' : undefined}
           onClick={() => onViewChange(v.key)}
           className={clsx(
-            'rounded-t-md px-3 py-2 text-sm font-medium transition-colors duration-150',
+            'shrink-0 rounded-t-md px-3 py-2 font-mono text-xs uppercase tracking-[0.14em] transition-colors duration-150',
             view === v.key
-              ? 'border-b-2 border-neutral-900 text-neutral-900 dark:border-neutral-100 dark:text-neutral-100'
-              : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100'
+              ? 'border-b-2 border-hud-accent text-hud-accent [text-shadow:0_0_12px_rgba(56,225,255,0.5)]'
+              : 'text-hud-muted hover:text-hud-text'
           )}
         >
           {v.label}

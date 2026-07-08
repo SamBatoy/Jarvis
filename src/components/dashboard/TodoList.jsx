@@ -62,27 +62,27 @@ export default function TodoList({ contextsById, domain, contextId, onEditTodo }
   }, [topLevel, domain, contextId, contextsById])
 
   if (isLoading) return <LoadingState label="Loading todos…" />
-  if (error) return <p className="text-sm text-red-600">Couldn’t load todos: {error.message}</p>
+  if (error) return <p className="text-sm text-hud-crit">Couldn’t load todos: {error.message}</p>
 
   return (
-    <section aria-labelledby="todos-heading">
-      <h2 id="todos-heading" className="mb-2 text-sm font-semibold text-neutral-500 dark:text-neutral-400">
+    <section aria-labelledby="todos-heading" className="hud-panel">
+      <h2 id="todos-heading" className="hud-label mb-2.5">
         Todos
       </h2>
       {pendingTimeLog.length > 0 && (
-        <ul className="mb-2 space-y-1 rounded-xl border border-neutral-200 px-3 py-2 dark:border-neutral-800">
+        <ul className="mb-2 space-y-1 rounded-lg border border-hud-accent/15 px-3 py-2">
           {pendingTimeLog.map((todo) => (
             <li key={todo.id}>
-              <p className="text-sm font-medium text-neutral-500 line-through">{todo.title}</p>
+              <p className="text-sm font-medium text-hud-muted line-through">{todo.title}</p>
               <MarkDoneStrip todo={todo} onDismiss={() => dismissTimeLog(todo.id)} />
             </li>
           ))}
         </ul>
       )}
       {filtered.length === 0 ? (
-        <p className="text-sm text-neutral-500">Nothing here — you’re clear.</p>
+        <p className="text-sm text-hud-muted">Nothing here — you’re clear.</p>
       ) : (
-        <ul className="max-h-[360px] overflow-y-auto rounded-xl border border-neutral-200 px-3 dark:border-neutral-800">
+        <ul className="max-h-[360px] overflow-y-auto">
           {filtered.map((todo) => (
             <TodoItem
               key={todo.id}

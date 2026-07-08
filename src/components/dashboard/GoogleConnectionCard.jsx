@@ -40,8 +40,8 @@ export default function GoogleConnectionCard() {
         <p
           className={
             message.type === 'success'
-              ? 'text-xs font-medium text-emerald-700 dark:text-emerald-400'
-              : 'text-xs font-medium text-red-600 dark:text-red-400'
+              ? 'text-xs font-medium text-hud-good'
+              : 'text-xs font-medium text-hud-crit'
           }
         >
           {message.text}
@@ -49,13 +49,13 @@ export default function GoogleConnectionCard() {
       )}
 
       {!data?.connected && (
-        <div className="rounded-lg border border-neutral-200 p-3 text-sm dark:border-neutral-800">
-          <p className="mb-2 text-neutral-600 dark:text-neutral-400">
+        <div className="hud-panel !p-3 text-sm">
+          <p className="mb-2 text-hud-muted">
             Connect Gmail to detect assignment deadlines automatically.
           </p>
           <a
             href="/api/auth/google/start"
-            className="inline-block rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white transition-colors duration-150 hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-300"
+            className="hud-btn-primary inline-block"
           >
             Connect Google
           </a>
@@ -63,14 +63,14 @@ export default function GoogleConnectionCard() {
       )}
 
       {data?.connected && data.needsReauth && (
-        <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm dark:border-amber-800 dark:bg-amber-950/40">
-          <p className="mb-2 text-amber-800 dark:text-amber-300">
+        <div className="hud-panel !border-hud-warn/40 !p-3 text-sm [box-shadow:0_0_18px_rgba(255,180,84,0.08)]">
+          <p className="mb-2 text-hud-warn">
             Your Google connection ({data.googleEmail}) needs to be refreshed — this happens roughly weekly
             since the app isn't publicly verified with Google.
           </p>
           <a
             href="/api/auth/google/start"
-            className="inline-block rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white transition-colors duration-150 hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-300"
+            className="hud-btn-primary inline-block"
           >
             Reconnect
           </a>
@@ -78,7 +78,7 @@ export default function GoogleConnectionCard() {
       )}
 
       {data?.connected && !data.needsReauth && (
-        <p className="text-xs text-neutral-500">Google connected: {data.googleEmail}</p>
+        <p className="font-mono text-xs text-hud-muted">Google connected: {data.googleEmail}</p>
       )}
     </div>
   )

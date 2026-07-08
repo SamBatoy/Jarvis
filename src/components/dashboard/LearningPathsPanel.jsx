@@ -44,17 +44,17 @@ function GeneratePathForm() {
           placeholder="I want to learn…"
           aria-label="Topic to learn"
           autoComplete="off"
-          className="flex-1 rounded-md border border-neutral-300 px-3 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-800"
+          className="hud-input flex-1"
         />
         <button
           type="submit"
           disabled={loading || !topic.trim()}
-          className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white transition-colors duration-150 hover:bg-neutral-700 disabled:opacity-50 disabled:hover:bg-neutral-900 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-300 dark:disabled:hover:bg-neutral-100"
+          className="hud-btn-primary"
         >
           {loading ? 'Generating…' : 'Generate'}
         </button>
       </form>
-      {error && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</p>}
+      {error && <p className="mt-1 text-xs text-hud-crit">{error}</p>}
       {proposal && <ProposalCard proposal={proposal} />}
     </div>
   )
@@ -97,17 +97,17 @@ export default function LearningPathsPanel() {
   }
 
   return (
-    <section aria-labelledby="learning-paths-heading">
-      <h2 id="learning-paths-heading" className="mb-2 text-sm font-semibold text-neutral-500 dark:text-neutral-400">
+    <section aria-labelledby="learning-paths-heading" className="hud-panel">
+      <h2 id="learning-paths-heading" className="hud-label mb-2.5">
         Learning Paths
       </h2>
 
       <GeneratePathForm />
 
       {isLoading && <LoadingState label="Loading learning paths…" />}
-      {error && <p className="text-sm text-red-600">Couldn’t load learning paths: {error.message}</p>}
+      {error && <p className="text-sm text-hud-crit">Couldn’t load learning paths: {error.message}</p>}
       {!isLoading && !error && (!paths || paths.length === 0) && (
-        <p className="text-sm text-neutral-500">None yet — generate one above, or ask Jarvis in chat.</p>
+        <p className="text-sm text-hud-muted">None yet — generate one above, or ask Jarvis in chat.</p>
       )}
       {!isLoading && paths?.length > 0 && (
         <ul className="max-h-[360px] space-y-3 overflow-y-auto">
@@ -117,7 +117,7 @@ export default function LearningPathsPanel() {
               !dismissedStuckIds.has(path.id) &&
               isStuck({ lastActivityAt: path.updated_at ?? path.created_at, isComplete: path.skills.every((s) => s.done) })
             return (
-            <li key={path.id} className="rounded-xl border border-neutral-200 p-3 dark:border-neutral-800">
+            <li key={path.id} className="rounded border border-hud-accent/15 p-3">
               <div className="flex items-center justify-between gap-2">
                 <h3 className="text-sm font-semibold">{path.topic}</h3>
                 <ConfirmDeleteButton
@@ -126,7 +126,7 @@ export default function LearningPathsPanel() {
                 />
               </div>
               {stuck && (
-                <div className="mt-1.5 flex items-center gap-2 text-xs text-amber-700 dark:text-amber-400">
+                <div className="mt-1.5 flex items-center gap-2 text-xs text-hud-warn">
                   <span>⚠ No progress in a while —</span>
                   <button
                     onClick={() => setDismissedStuckIds((prev) => new Set(prev).add(path.id))}
@@ -151,11 +151,11 @@ export default function LearningPathsPanel() {
                 </div>
               )}
               {path.status === 'paused' && (
-                <div className="mt-1.5 flex items-center gap-2 text-xs text-neutral-500">
+                <div className="mt-1.5 flex items-center gap-2 text-xs text-hud-muted">
                   <span>Paused</span>
                   <button
                     onClick={() => updatePath.mutate({ id: path.id, fields: { status: 'active' } })}
-                    className="font-medium text-blue-600 hover:underline dark:text-blue-400"
+                    className="font-medium text-hud-accent hover:underline"
                   >
                     Resume
                   </button>
@@ -170,16 +170,16 @@ export default function LearningPathsPanel() {
                           type="checkbox"
                           checked={!!skill.done}
                           onChange={() => toggleSkill(path, i)}
-                          className="mt-0.5 h-4 w-4 shrink-0 accent-neutral-900 dark:accent-neutral-100"
+                          className="mt-0.5 h-4 w-4 shrink-0 accent-hud-accent"
                         />
-                        <span className={skill.done ? 'text-neutral-400 line-through' : ''}>
+                        <span className={skill.done ? 'text-hud-muted line-through' : ''}>
                           <span className="font-medium">{skill.name}</span>
-                          {skill.description && <span className="text-neutral-500"> — {skill.description}</span>}
+                          {skill.description && <span className="text-hud-muted"> — {skill.description}</span>}
                         </span>
                       </label>
                       <button
                         onClick={() => setTurnIntoTodosTarget({ skill, path })}
-                        className="shrink-0 text-xs text-blue-600 hover:underline dark:text-blue-400"
+                        className="shrink-0 text-xs text-hud-accent hover:underline"
                       >
                         Turn into todos
                       </button>
@@ -193,7 +193,7 @@ export default function LearningPathsPanel() {
                               href={r.url}
                               target="_blank"
                               rel="noreferrer"
-                              className="text-xs text-blue-600 underline hover:no-underline dark:text-blue-400"
+                              className="text-xs text-hud-accent underline hover:no-underline"
                             >
                               {r.title} ({r.type})
                             </a>

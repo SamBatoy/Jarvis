@@ -76,15 +76,15 @@ export default function SuggestionsBatchCard() {
 
   if (phase === 'done') {
     return (
-      <div className="rounded-lg border border-neutral-200 p-3 dark:border-neutral-800">
-        <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400">✓ Suggestions applied</p>
+      <div className="hud-panel !p-3">
+        <p className="text-sm font-medium text-hud-good">✓ Suggestions applied</p>
       </div>
     )
   }
 
   return (
-    <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm dark:border-amber-800 dark:bg-amber-950/40">
-      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-400">
+    <div className="hud-panel !border-hud-warn/40 !p-3 text-sm [box-shadow:0_0_18px_rgba(255,180,84,0.08)]">
+      <p className="hud-label mb-2 !text-hud-warn">
         Detected from Gmail — review before adding
       </p>
       <ul className="space-y-2">
@@ -96,38 +96,38 @@ export default function SuggestionsBatchCard() {
                 checked={s.accepted}
                 onChange={() => toggleAccepted(s.id)}
                 aria-label={`Accept "${s.title}"`}
-                className="h-4 w-4 accent-neutral-900 dark:accent-neutral-100"
+                className="h-4 w-4 accent-hud-accent"
               />
             </label>
             <div className="min-w-0 flex-1 space-y-1">
               <input
                 value={s.title}
                 onChange={(e) => updateField(s.id, 'title', e.target.value)}
-                className="w-full rounded border border-neutral-300 bg-white px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800"
+                className="hud-input w-full !px-2 !py-1"
               />
-              <div className="flex flex-wrap items-center gap-2 text-xs text-neutral-500">
+              <div className="flex flex-wrap items-center gap-2 text-xs text-hud-muted">
                 <span className="capitalize">{s.suggestedType}</span>
                 <input
                   type="datetime-local"
                   value={toLocalInputValue(s.dueDate)}
                   onChange={(e) => updateField(s.id, 'dueDate', fromLocalInputValue(e.target.value))}
-                  className="rounded border border-neutral-300 bg-white px-1.5 py-0.5 dark:border-neutral-700 dark:bg-neutral-800"
+                  className="hud-input !px-1.5 !py-0.5 !text-xs"
                 />
               </div>
-              {s.notes && <p className="truncate text-xs text-neutral-500">{s.notes}</p>}
+              {s.notes && <p className="truncate text-xs text-hud-muted">{s.notes}</p>}
             </div>
           </li>
         ))}
       </ul>
       {errorMsg && (
-        <p role="alert" className="mt-2 text-xs text-red-600 dark:text-red-400">
+        <p role="alert" className="mt-2 text-xs text-hud-crit">
           {errorMsg}
         </p>
       )}
       <button
         onClick={handleConfirm}
         disabled={phase === 'applying'}
-        className="mt-3 rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white transition-colors duration-150 hover:bg-neutral-700 disabled:pointer-events-none disabled:opacity-50 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-300"
+        className="hud-btn-primary mt-3"
       >
         {phase === 'applying' ? 'Applying…' : 'Confirm Selected'}
       </button>

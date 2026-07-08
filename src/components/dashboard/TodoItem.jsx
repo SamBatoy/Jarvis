@@ -8,9 +8,9 @@ import { computePriorityScore, suggestedPriorityLabel } from '../../lib/priority
 import { isStuck } from '../../lib/stuckDetection'
 
 const PRIORITY_STYLES = {
-  high: 'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300',
-  medium: 'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300',
-  low: 'bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400',
+  high: 'border border-hud-crit/40 text-hud-crit',
+  medium: 'border border-hud-warn/40 text-hud-warn',
+  low: 'border border-hud-muted/35 text-hud-muted',
 }
 
 const SUGGESTION_ARROW = { high: '↑', medium: '·', low: '↓' }
@@ -41,7 +41,7 @@ export function MarkDoneStrip({ todo, onDismiss }) {
   }
 
   return (
-    <div className="ml-7 flex flex-wrap items-center gap-2 pb-2 text-xs text-neutral-500">
+    <div className="ml-7 flex flex-wrap items-center gap-2 pb-2 text-xs text-hud-muted">
       <span>How long did it take?</span>
       <input
         type="number"
@@ -49,7 +49,7 @@ export function MarkDoneStrip({ todo, onDismiss }) {
         placeholder="Actual min"
         value={actualMinutes}
         onChange={(e) => setActualMinutes(e.target.value)}
-        className="w-24 rounded border border-neutral-300 px-2 py-1 dark:border-neutral-700 dark:bg-neutral-800"
+        className="hud-input w-24 !px-2 !py-1 !text-xs"
       />
       {!todo.estimated_minutes && (
         <input
@@ -58,18 +58,15 @@ export function MarkDoneStrip({ todo, onDismiss }) {
           placeholder="Estimated min"
           value={estimatedMinutes}
           onChange={(e) => setEstimatedMinutes(e.target.value)}
-          className="w-28 rounded border border-neutral-300 px-2 py-1 dark:border-neutral-700 dark:bg-neutral-800"
+          className="hud-input w-28 !px-2 !py-1 !text-xs"
         />
       )}
-      <button
-        onClick={handleSave}
-        className="rounded bg-neutral-900 px-2 py-1 font-medium text-white transition-colors duration-150 hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-300"
-      >
-        Save
+      <button onClick={handleSave} className="hud-btn-primary !px-2 !py-1">
+        SAVE
       </button>
       <button
         onClick={onDismiss}
-        className="rounded px-2 py-1 transition-colors duration-150 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+        className="rounded px-2 py-1 transition-colors duration-150 hover:bg-hud-accent/10 hover:text-hud-text"
       >
         Dismiss
       </button>
@@ -99,7 +96,7 @@ function StuckActions({ todo }) {
 
   return (
     <div className="ml-7 pb-2 text-xs">
-      <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400">
+      <div className="flex items-center gap-2 text-hud-warn">
         <span>⚠ No activity in a while —</span>
         <button onClick={() => setBreakingIntoSteps(true)} className="font-medium hover:underline">
           Break into steps
@@ -109,8 +106,8 @@ function StuckActions({ todo }) {
           Quick-start suggestion
         </button>
       </div>
-      {quickStart === 'loading' && <p className="mt-1 text-neutral-500">Thinking…</p>}
-      {quickStart && quickStart !== 'loading' && <p className="mt-1 text-neutral-600 dark:text-neutral-400">{quickStart}</p>}
+      {quickStart === 'loading' && <p className="mt-1 text-hud-muted">Thinking…</p>}
+      {quickStart && quickStart !== 'loading' && <p className="mt-1 text-hud-muted">{quickStart}</p>}
       {breakingIntoSteps && <BreakTodoIntoStepsModal todo={todo} onClose={() => setBreakingIntoSteps(false)} />}
     </div>
   )
@@ -138,14 +135,14 @@ function Row({ todo, context, onEdit, childCount = 0, onMarkedDone }) {
               if (checked) onMarkedDone?.(todo)
             }}
             aria-label={`Mark "${todo.title}" ${todo.done ? 'not done' : 'done'}`}
-            className="h-4 w-4 rounded border-neutral-300 accent-neutral-900 dark:accent-neutral-100"
+            className="h-4 w-4 rounded accent-hud-accent"
           />
         </label>
         <button
           onClick={() => onEdit?.(todo)}
           className={clsx(
-            'min-w-0 flex-1 truncate text-left text-sm transition-colors duration-150 hover:text-blue-600 dark:hover:text-blue-400',
-            todo.done && 'text-neutral-400 line-through hover:text-neutral-500 dark:hover:text-neutral-500'
+            'min-w-0 flex-1 truncate text-left text-sm transition-colors duration-150 hover:text-hud-accent',
+            todo.done && 'text-hud-muted line-through hover:text-hud-muted'
           )}
         >
           {todo.title}
@@ -153,17 +150,17 @@ function Row({ todo, context, onEdit, childCount = 0, onMarkedDone }) {
         {showSuggestion && (
           <span
             title={`Smart Priority suggests: ${suggested}`}
-            className="shrink-0 text-xs font-medium text-blue-600 dark:text-blue-400"
+            className="shrink-0 text-xs font-medium text-hud-accent"
           >
             {SUGGESTION_ARROW[suggested]} suggested: {suggested}
           </span>
         )}
         {todo.priority && (
-          <span className={clsx('rounded px-1.5 py-0.5 text-xs font-medium', PRIORITY_STYLES[todo.priority])}>
+          <span className={clsx('rounded px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider', PRIORITY_STYLES[todo.priority])}>
             {todo.priority}
           </span>
         )}
-        {todo.due_date && <span className="shrink-0 text-xs text-neutral-500">{formatDate(todo.due_date)}</span>}
+        {todo.due_date && <span className="shrink-0 font-mono text-xs text-hud-muted">{formatDate(todo.due_date)}</span>}
         <ContextBadge context={context} />
       </div>
       {stuck && <StuckActions todo={todo} />}
@@ -177,14 +174,14 @@ export default function TodoItem({ todo, context, childTodos = [], contextsById,
   const doneCount = childTodos.filter((c) => c.done).length
 
   return (
-    <li className="border-b border-neutral-100 last:border-0 dark:border-neutral-900">
+    <li className="border-b border-hud-accent/10 last:border-0">
       <div className="flex items-center">
         {hasChildren ? (
           <button
             onClick={() => setExpanded((v) => !v)}
             aria-expanded={expanded}
             aria-label={expanded ? 'Collapse subtasks' : 'Expand subtasks'}
-            className="mr-1 shrink-0 rounded p-1 text-neutral-400 transition-colors duration-150 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+            className="mr-1 shrink-0 rounded p-1 text-hud-muted transition-colors duration-150 hover:bg-hud-accent/10 hover:text-hud-text"
           >
             {expanded ? '▾' : '▸'}
           </button>
@@ -195,13 +192,13 @@ export default function TodoItem({ todo, context, childTodos = [], contextsById,
           <Row todo={todo} context={context} onEdit={onEdit} childCount={childTodos.length} onMarkedDone={onMarkedDone} />
         </div>
         {hasChildren && (
-          <span className="ml-2 shrink-0 text-xs text-neutral-500">
+          <span className="ml-2 shrink-0 font-mono text-xs text-hud-muted">
             {doneCount}/{childTodos.length}
           </span>
         )}
       </div>
       {hasChildren && expanded && (
-        <ul className="ml-7 border-l border-neutral-200 pl-3 dark:border-neutral-800">
+        <ul className="ml-7 border-l border-hud-accent/15 pl-3">
           {childTodos.map((child) => (
             <li key={child.id}>
               <Row

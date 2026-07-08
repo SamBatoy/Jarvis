@@ -39,12 +39,12 @@ function ScaffoldPreview({ preview }) {
   return (
     <div>
       <p className="font-medium">{preview.parent.title}</p>
-      <p className="text-xs text-neutral-500">Due {formatDateTime(preview.parent.due_date)} · {preview.children.length} subtasks</p>
+      <p className="text-xs text-hud-muted">Due {formatDateTime(preview.parent.due_date)} · {preview.children.length} subtasks</p>
       <ol className="mt-2 space-y-1 text-xs">
         {preview.children.map((c, i) => (
           <li key={i} className="flex justify-between gap-2">
             <span>{i + 1}. {c.title}</span>
-            <span className="shrink-0 text-neutral-500">{formatDateTime(c.due_date)}</span>
+            <span className="shrink-0 font-mono text-hud-muted">{formatDateTime(c.due_date)}</span>
           </li>
         ))}
       </ol>
@@ -60,15 +60,15 @@ function LearningPathPreview({ preview }) {
         {preview.skills.map((s, i) => (
           <li key={i}>
             <span className="font-medium">{i + 1}. {s.name}</span>
-            <span className="text-neutral-500"> — {s.description}</span>
+            <span className="text-hud-muted"> — {s.description}</span>
             {s.resources?.length > 0 && (
-              <span className="text-neutral-500"> ({s.resources.length} resource{s.resources.length > 1 ? 's' : ''})</span>
+              <span className="text-hud-muted"> ({s.resources.length} resource{s.resources.length > 1 ? 's' : ''})</span>
             )}
           </li>
         ))}
       </ol>
       {preview.resourcesAvailable === false && (
-        <p className="mt-2 text-xs italic text-neutral-500">
+        <p className="mt-2 text-xs italic text-hud-muted">
           Web search isn’t configured, so resources aren’t included — set TAVILY_API_KEY to enable them.
         </p>
       )}
@@ -80,7 +80,7 @@ function DeletePreview({ preview }) {
   return (
     <div>
       <p className="font-medium">Delete this {preview.entityType}?</p>
-      <p className="mt-1 text-xs text-neutral-600 dark:text-neutral-400">{preview.row.title ?? preview.row.name}</p>
+      <p className="mt-1 text-xs text-hud-muted">{preview.row.title ?? preview.row.name}</p>
     </div>
   )
 }
@@ -101,7 +101,7 @@ function BatchUpdatePreview({ preview }) {
         {preview.changes.map((change, i) => (
           <li key={i}>
             <span className="font-medium">{change.title}</span>
-            <ul className="ml-3 text-neutral-500">
+            <ul className="ml-3 text-hud-muted">
               {Object.entries(change.fields).map(([field, newValue]) => (
                 <li key={field}>
                   {field.replace(/_/g, ' ')}: {formatFieldValue(change.before[field])} → {formatFieldValue(newValue)}
@@ -123,7 +123,7 @@ function GenericPreview({ preview }) {
         .map(([key, value]) => (
           <div key={key} className="flex gap-2">
             <dt className="shrink-0 font-medium capitalize">{key.replace(/_/g, ' ')}:</dt>
-            <dd className="truncate text-neutral-600 dark:text-neutral-400">
+            <dd className="truncate text-hud-muted">
               {typeof value === 'object' ? JSON.stringify(value) : String(value)}
             </dd>
           </div>
@@ -180,8 +180,8 @@ export default function ProposalCard({ proposal, source = 'dashboard' }) {
   }
 
   return (
-    <div className="mt-2 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm dark:border-amber-800 dark:bg-amber-950/40">
-      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-400">
+    <div className="hud-panel mt-2 !border-hud-warn/40 !p-3 text-sm [box-shadow:0_0_18px_rgba(255,180,84,0.08)]">
+      <p className="hud-label mb-2 !text-hud-warn">
         {TOOL_LABELS[toolName] ?? toolName}
       </p>
 
@@ -192,7 +192,7 @@ export default function ProposalCard({ proposal, source = 'dashboard' }) {
       {!CUSTOM_PREVIEW_TOOLS.includes(toolName) && <GenericPreview preview={preview} />}
 
       {error && (
-        <p role="alert" className="mt-2 text-xs text-red-600 dark:text-red-400">
+        <p role="alert" className="mt-2 text-xs text-hud-crit">
           {error}
         </p>
       )}
@@ -201,13 +201,13 @@ export default function ProposalCard({ proposal, source = 'dashboard' }) {
         <div className="mt-3 flex gap-2">
           <button
             onClick={handleConfirm}
-            className="rounded-md bg-neutral-900 px-3 py-1 text-xs font-medium text-white transition-colors duration-150 hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-300"
+            className="hud-btn-primary !py-1"
           >
             Confirm
           </button>
           <button
             onClick={handleCancel}
-            className="rounded-md border border-neutral-300 px-3 py-1 text-xs font-medium transition-colors duration-150 hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
+            className="hud-btn !py-1"
           >
             Cancel
           </button>
@@ -220,9 +220,9 @@ export default function ProposalCard({ proposal, source = 'dashboard' }) {
           </div>
         )}
         {status === 'confirmed' && (
-          <p className="mt-3 text-xs font-medium text-emerald-700 dark:text-emerald-400">✓ Done</p>
+          <p className="mt-3 text-xs font-medium text-hud-good">✓ Done</p>
         )}
-        {status === 'cancelled' && <p className="mt-3 text-xs text-neutral-500">Cancelled — nothing was changed.</p>}
+        {status === 'cancelled' && <p className="mt-3 text-xs text-hud-muted">Cancelled — nothing was changed.</p>}
       </div>
     </div>
   )
