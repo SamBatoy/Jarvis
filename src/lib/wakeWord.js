@@ -53,6 +53,31 @@ function traceLog(...args) {
 const SpeechRecognitionClass =
   typeof window !== 'undefined' ? window.SpeechRecognition || window.webkitSpeechRecognition : null
 
+// Wake word is only ever instantiated once, inside ChatInput (which stays
+// mounted for the whole app regardless of which view is showing) — but
+// other views (System View) still want to show its live status without
+// duplicating a second SpeechRecognition session. A tiny module-level
+// pub/sub avoids introducing Context/prop-drilling just for a read-only
+// status mirror; latestStatus is kept so a late-subscribing consumer gets
+// the current state immediately instead of waiting for the next change.
+let latestStatus = { supported: !!SpeechRecognitionClass, enabled: false, listening: false, tabHidden: false, error: null }
+const statusListeners = new Set()
+
+function publishWakeWordStatus(next) {
+  latestStatus = next
+  statusListeners.forEach((fn) => fn(next))
+}
+
+export function useWakeWordStatus() {
+  const [status, setStatus] = useState(latestStatus)
+  useEffect(() => {
+    setStatus(latestStatus)
+    statusListeners.add(setStatus)
+    return () => statusListeners.delete(setStatus)
+  }, [])
+  return status
+}
+
 // DEBUG: log actual microphone permission state once, on module load —
 // don't assume it's granted just because the UI shows a "listening" state.
 if (typeof navigator !== 'undefined' && navigator.permissions?.query) {
@@ -206,6 +231,10 @@ export function useWakeWord({ enabled, suspended, onWake }) {
     document.addEventListener('visibilitychange', onVisibilityChange)
     return () => document.removeEventListener('visibilitychange', onVisibilityChange)
   }, [])
+
+  useEffect(() => {
+    publishWakeWordStatus({ supported: !!SpeechRecognitionClass, enabled, listening, tabHidden, error: giveUpError })
+  }, [enabled, listening, tabHidden, giveUpError])
 
   return { supported: !!SpeechRecognitionClass, listening, tabHidden, error: giveUpError }
 }

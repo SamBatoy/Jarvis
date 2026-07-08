@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import clsx from 'clsx'
 import Dashboard from './components/dashboard/Dashboard'
 import CalendarView from './components/calendar/CalendarView'
@@ -6,7 +6,12 @@ import ArchiveView from './components/archive/ArchiveView'
 import AnalyticsView from './components/analytics/AnalyticsView'
 import ChatPanel from './components/chat/ChatPanel'
 import ViewTabs from './components/ViewTabs'
+import LoadingState from './components/LoadingState'
 import { useUrlState } from './hooks/useUrlState'
+
+// Code-split: three.js is a real amount of weight, and only visitors who
+// actually open System View should pay for downloading it.
+const SystemView = lazy(() => import('./components/system/SystemView'))
 
 export default function App() {
   const [chatOpen, setChatOpen] = useState(false)
@@ -31,16 +36,35 @@ export default function App() {
       </a>
 
       <main className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <ViewTabs view={view} onViewChange={setView} />
-        {/* pb-24: the floating chat widget (fixed bottom-4) has no reserved
-            space in the document at any breakpoint now, so without this the
-            last row of whatever's scrolled to the bottom sits underneath it. */}
-        <div id="main-content" className="flex-1 overflow-y-auto pb-24">
-          {view === 'dashboard' && <Dashboard />}
-          {view === 'calendar' && <CalendarView />}
-          {view === 'archive' && <ArchiveView />}
-          {view === 'analytics' && <AnalyticsView />}
-        </div>
+        {/* System View is a full-viewport takeover — no ViewTabs, no shared
+            nav chrome, its own small exit control instead — rather than one
+            more peer tab, matching how it was scoped as an immersive,
+            ambient centerpiece rather than another dashboard page. */}
+        {view === 'system' ? (
+          <Suspense
+            fallback={
+              <div className="flex flex-1 items-center justify-center">
+                <LoadingState label="Loading System View…" />
+              </div>
+            }
+          >
+            <SystemView onExit={() => setView('dashboard')} />
+          </Suspense>
+        ) : (
+          <>
+            <ViewTabs view={view} onViewChange={setView} onOpenSystemView={() => setView('system')} />
+            {/* pb-24: the floating chat widget (fixed bottom-4) has no
+                reserved space in the document at any breakpoint now, so
+                without this the last row of whatever's scrolled to the
+                bottom sits underneath it. */}
+            <div id="main-content" className="flex-1 overflow-y-auto pb-24">
+              {view === 'dashboard' && <Dashboard />}
+              {view === 'calendar' && <CalendarView />}
+              {view === 'archive' && <ArchiveView />}
+              {view === 'analytics' && <AnalyticsView />}
+            </div>
+          </>
+        )}
       </main>
 
       {/* Floating chat widget, one pattern at every breakpoint (replaces the
