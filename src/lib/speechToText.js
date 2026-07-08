@@ -30,13 +30,30 @@ function describeError(code) {
   }
 }
 
+// DEBUG: temporary, timestamped tracing for diagnosing the mic-flicker
+// report — remove once confirmed fixed. Toggle by setting
+// window.__wakeWordDebug = true in the console before reproducing (shared
+// flag with wakeWord.js, since both matter for the same symptom).
+function debugLog(...args) {
+  if (typeof window !== 'undefined' && window.__wakeWordDebug) {
+    console.log(`[speechToText ${performance.now().toFixed(0)}ms]`, ...args)
+  }
+}
+
 export function useSpeechToText({ onResult } = {}) {
   const [listening, setListening] = useState(false)
   const [error, setError] = useState(null)
   const recognitionRef = useRef(null)
 
   function start() {
-    if (!SpeechRecognitionClass || listening) return
+    // Guard on the ref, not the `listening` state — state updates are
+    // deferred to the next render, so two start() calls in the same tick
+    // (e.g. wake word firing twice in quick succession before a guard
+    // fix elsewhere) would both see the same stale `listening: false` and
+    // both proceed, creating two simultaneous recognition sessions. The
+    // ref is set synchronously below, so it closes this race the same way
+    // wakeWord.js's own recognitionRef guard does.
+    if (!SpeechRecognitionClass || recognitionRef.current) return
     setError(null)
 
     const recognition = new SpeechRecognitionClass()
@@ -44,6 +61,7 @@ export function useSpeechToText({ onResult } = {}) {
     recognition.interimResults = true
     recognition.lang = navigator.language || 'en-US'
 
+    recognition.onstart = () => debugLog('onstart')
     recognition.onresult = (event) => {
       let transcript = ''
       let isFinal = false
@@ -51,12 +69,15 @@ export function useSpeechToText({ onResult } = {}) {
         transcript += event.results[i][0].transcript
         if (event.results[i].isFinal) isFinal = true
       }
+      debugLog('onresult', transcript, 'isFinal', isFinal)
       onResult?.({ transcript, isFinal })
     }
     recognition.onerror = (event) => {
+      debugLog('onerror', event.error)
       if (!SILENT_ERRORS.has(event.error)) setError(describeError(event.error))
     }
     recognition.onend = () => {
+      debugLog('onend')
       setListening(false)
       recognitionRef.current = null
     }
@@ -64,6 +85,7 @@ export function useSpeechToText({ onResult } = {}) {
     recognition.start()
     recognitionRef.current = recognition
     setListening(true)
+    debugLog('start() created new session')
   }
 
   function stop() {
