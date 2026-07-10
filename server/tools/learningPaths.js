@@ -8,6 +8,17 @@ export async function listLearningPaths() {
   return data
 }
 
+// The model is asked to mark 3-4 "pivotal" skills isKey:true, but that
+// instruction is unenforced — if it complies with none, resource search
+// would silently never run for the whole generation. Guarantee at least
+// one attempt by falling back to the first few skills. Exported so this
+// can be exercised directly without a live LLM call.
+export function applyIsKeyFallback(skills) {
+  if (skills.some((s) => s.isKey === true)) return skills
+  const fallbackCount = Math.min(4, skills.length)
+  return skills.map((s, i) => ({ ...s, isKey: i < fallbackCount }))
+}
+
 async function generateSkillList(topic) {
   const prompt = `Create a structured learning path for: "${topic}".
 List 5 to 8 skills in order from fundamentals to advanced. Mark the 3 or 4 most pivotal skills (the ones most worth spending real study resources on) with "isKey": true, the rest false.
@@ -17,10 +28,10 @@ Respond with ONLY a JSON array, nothing else — no markdown, no explanation. Ex
   const response = await chatCompletion({ messages: [{ role: 'user', content: prompt }], tools: [] })
   const skills = JSON.parse(response.content)
   if (!Array.isArray(skills) || skills.length === 0) throw new Error('Model did not return a valid skill list')
-  return skills
+  return applyIsKeyFallback(skills)
 }
 
-async function pickResourcesForSkill(topic, skill) {
+export async function pickResourcesForSkill(topic, skill) {
   const results = await search(`${topic} ${skill.name} tutorial`, { maxResults: 5 })
   if (!results || results.length === 0) return []
 
