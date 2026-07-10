@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import clsx from 'clsx'
-import { useTodos, useUpdateTodo } from '../../hooks/useTodos'
+import { useTodos, useUpdateTodo, useAllTodosForAnalytics } from '../../hooks/useTodos'
 import { computePriorityScore } from '../../lib/priorityScore'
+import { missedRateByContext } from '../../lib/analytics'
 import { useAmbientNoise } from '../../lib/ambientNoise'
 import LoadingState from '../LoadingState'
 
@@ -22,6 +23,9 @@ export default function FocusMode({ onClose }) {
   const updateTodo = useUpdateTodo()
   const { on: soundOn, toggle: toggleSound } = useAmbientNoise()
 
+  const { data: allTodosForAnalytics } = useAllTodosForAnalytics()
+  const contextMissedRateMap = useMemo(() => missedRateByContext(allTodosForAnalytics ?? []), [allTodosForAnalytics])
+
   const childCountByParent = useMemo(() => {
     const map = new Map()
     for (const t of activeTodos) {
@@ -33,10 +37,16 @@ export default function FocusMode({ onClose }) {
   const defaultTodoId = useMemo(() => {
     const scored = activeTodos
       .filter((t) => !t.parent_todo_id)
-      .map((t) => ({ id: t.id, score: computePriorityScore(t, { childCount: childCountByParent.get(t.id) ?? 0 }) }))
+      .map((t) => ({
+        id: t.id,
+        score: computePriorityScore(t, {
+          childCount: childCountByParent.get(t.id) ?? 0,
+          contextMissedRate: contextMissedRateMap.get(t.context_id) ?? 0,
+        }),
+      }))
       .sort((a, b) => b.score - a.score)
     return scored[0]?.id ?? null
-  }, [activeTodos, childCountByParent])
+  }, [activeTodos, childCountByParent, contextMissedRateMap])
 
   const [selectedId, setSelectedId] = useState(null)
 

@@ -3,6 +3,7 @@ import { chatCompletion } from '../../server/llm/index.js'
 import { logAction } from '../../server/actionLog.js'
 import { todayRangeInAppTz, todayDateStringInAppTz } from '../../server/timezone.js'
 import { computePriorityScore } from '../../src/lib/priorityScore.js'
+import { missedRateByContext } from '../../src/lib/analytics.js'
 
 const DEFAULT_FOCUS = `Look at today's due items and pick one to start with.`
 
@@ -21,12 +22,13 @@ export default async function handler(req, res) {
   const { startISO, endISO } = todayRangeInAppTz()
   const briefDate = todayDateStringInAppTz()
 
-  const [dueTodosRes, dueDeadlinesRes, activeTodosRes] = await Promise.all([
+  const [dueTodosRes, dueDeadlinesRes, activeTodosRes, archivedTodosRes] = await Promise.all([
     supabaseAdmin.from('todos').select('id, title').eq('archived', false).eq('done', false).gte('due_date', startISO).lte('due_date', endISO),
     supabaseAdmin.from('deadlines').select('id, title').eq('status', 'upcoming').gte('due_at', startISO).lte('due_at', endISO),
     supabaseAdmin.from('todos').select('*').eq('archived', false).eq('done', false),
+    supabaseAdmin.from('todos').select('context_id, archive_reason').eq('archived', true),
   ])
-  for (const r of [dueTodosRes, dueDeadlinesRes, activeTodosRes]) {
+  for (const r of [dueTodosRes, dueDeadlinesRes, activeTodosRes, archivedTodosRes]) {
     if (r.error) {
       res.status(500).json({ error: r.error.message })
       return
@@ -39,13 +41,18 @@ export default async function handler(req, res) {
   for (const t of activeTodosRes.data) {
     if (t.parent_todo_id) childCountByParent.set(t.parent_todo_id, (childCountByParent.get(t.parent_todo_id) ?? 0) + 1)
   }
+  const contextMissedRateMap = missedRateByContext(archivedTodosRes.data.map((t) => ({ ...t, archived: true })))
   const now = new Date()
   const topPriorities = activeTodosRes.data
     .filter((t) => !t.parent_todo_id)
     .map((t) => ({
       id: t.id,
       title: t.title,
-      score: computePriorityScore(t, { childCount: childCountByParent.get(t.id) ?? 0, now }),
+      score: computePriorityScore(t, {
+        childCount: childCountByParent.get(t.id) ?? 0,
+        now,
+        contextMissedRate: contextMissedRateMap.get(t.context_id) ?? 0,
+      }),
     }))
     .sort((a, b) => b.score - a.score)
     .slice(0, 5)

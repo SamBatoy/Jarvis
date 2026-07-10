@@ -33,12 +33,16 @@ function effortProxy(todo, childCount) {
   return EFFORT_BY_TASK_TYPE[todo.task_type] ?? 0.15
 }
 
-export function computePriorityScore(todo, { childCount = 0, now = new Date() } = {}) {
+export function computePriorityScore(todo, { childCount = 0, now = new Date(), contextMissedRate = 0 } = {}) {
   const proximity = !todo.due_date ? 0 : Math.max(0, 1 - (new Date(todo.due_date) - now) / (14 * DAY_MS))
   const goalLinked = todo.goal_id ? 1 : 0
   const age = todo.created_at ? Math.min(1, (now - new Date(todo.created_at)) / (30 * DAY_MS)) : 0
   const effort = effortProxy(todo, childCount)
-  return proximity * 0.4 + goalLinked * 0.2 + age * 0.2 + effort * 0.2 // 0..1
+  const base = proximity * 0.4 + goalLinked * 0.2 + age * 0.2 + effort * 0.2
+  // Additive capped bonus, not a 5th peer weight — leaves the base 4-term
+  // formula (and its behavior for subjects with no miss history) untouched;
+  // contextMissedRate is 0 for anything under analytics.js's MIN_SAMPLE.
+  return Math.min(1, base + contextMissedRate * 0.15) // 0..1
 }
 
 export function suggestedPriorityLabel(score) {

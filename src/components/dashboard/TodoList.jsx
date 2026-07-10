@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
 import TodoItem, { MarkDoneStrip } from './TodoItem'
 import LoadingState from '../LoadingState'
-import { useTodos } from '../../hooks/useTodos'
+import { useTodos, useAllTodosForAnalytics } from '../../hooks/useTodos'
+import { missedRateByContext } from '../../lib/analytics'
 
 const PRIORITY_WEIGHT = { high: 0, medium: 1, low: 2 }
 
@@ -16,6 +17,8 @@ function compareTodos(a, b) {
 
 export default function TodoList({ contextsById, domain, contextId, onEditTodo }) {
   const { data: todos, isLoading, error } = useTodos()
+  const { data: allTodosForAnalytics } = useAllTodosForAnalytics()
+  const contextMissedRateMap = useMemo(() => missedRateByContext(allTodosForAnalytics ?? []), [allTodosForAnalytics])
 
   // Completing a todo now archives it instantly (independent of due_date —
   // see 010_instant_archive_on_complete.sql), so it vanishes from `todos`
@@ -92,6 +95,7 @@ export default function TodoList({ contextsById, domain, contextId, onEditTodo }
               childTodos={childrenByParent.get(todo.id) ?? []}
               onEdit={onEditTodo}
               onMarkedDone={handleMarkedDone}
+              contextMissedRateMap={contextMissedRateMap}
             />
           ))}
         </ul>

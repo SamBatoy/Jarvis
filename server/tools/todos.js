@@ -1,5 +1,6 @@
 import { supabaseAdmin } from '../supabaseAdmin.js'
 import { computePriorityScore, suggestedPriorityLabel } from '../../src/lib/priorityScore.js'
+import { missedRateByContext } from '../../src/lib/analytics.js'
 
 export async function listTodos(args) {
   let query = supabaseAdmin.from('todos').select('*').order('due_date', { ascending: true, nullsFirst: false })
@@ -14,13 +15,23 @@ export async function listTodos(args) {
   const { data, error } = await query
   if (error) throw error
 
+  // Chronic-miss signal per subject/project, same as the dashboard's — needs
+  // full archived history regardless of this call's own filters.
+  const { data: historyData, error: historyError } = await supabaseAdmin
+    .from('todos')
+    .select('context_id, archived, archive_reason')
+  if (historyError) throw historyError
+  const contextMissedRateMap = missedRateByContext(historyData)
+
   // Smart Priority Engine: a passive suggestion attached to each row so the
   // model can reference it naturally — chat never acts on this by itself.
   // No parent/child join here (unlike the dashboard, which already has the
   // full set loaded), so effort falls back to the task_type-based proxy.
   return data.map((todo) => ({
     ...todo,
-    suggested_priority: suggestedPriorityLabel(computePriorityScore(todo)),
+    suggested_priority: suggestedPriorityLabel(
+      computePriorityScore(todo, { contextMissedRate: contextMissedRateMap.get(todo.context_id) ?? 0 })
+    ),
   }))
 }
 

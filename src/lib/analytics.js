@@ -62,6 +62,28 @@ export function mostDelayedSubjects(todos, contextsById) {
   return ranked.length > 0 ? ranked : null
 }
 
+// Chronic-miss signal per subject/project, feeding priorityScore.js's
+// contextMissedRate boost. Same MIN_SAMPLE guard as estimateBias.js — a
+// context needs at least 5 archived todos before its miss rate is trusted,
+// so a brand-new subject's first bad week can't dominate the score.
+const MIN_SAMPLE = 5
+
+export function missedRateByContext(todos) {
+  const totals = new Map()
+  const missed = new Map()
+  for (const t of todos) {
+    if (!t.archived || t.context_id == null) continue
+    totals.set(t.context_id, (totals.get(t.context_id) ?? 0) + 1)
+    if (t.archive_reason === 'missed') missed.set(t.context_id, (missed.get(t.context_id) ?? 0) + 1)
+  }
+  const rateByContext = new Map()
+  for (const [contextId, total] of totals) {
+    if (total < MIN_SAMPLE) continue
+    rateByContext.set(contextId, (missed.get(contextId) ?? 0) / total)
+  }
+  return rateByContext
+}
+
 export function weeklyTrends(todos, weeks = 8) {
   const now = new Date()
   const weekBuckets = []

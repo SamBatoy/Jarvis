@@ -113,9 +113,10 @@ function StuckActions({ todo }) {
   )
 }
 
-function Row({ todo, context, onEdit, childCount = 0, onMarkedDone }) {
+function Row({ todo, context, onEdit, childCount = 0, onMarkedDone, contextMissedRateMap }) {
   const updateTodo = useUpdateTodo()
-  const suggested = suggestedPriorityLabel(computePriorityScore(todo, { childCount }))
+  const contextMissedRate = contextMissedRateMap?.get(todo.context_id) ?? 0
+  const suggested = suggestedPriorityLabel(computePriorityScore(todo, { childCount, contextMissedRate }))
   const showSuggestion = !todo.done && suggested !== todo.priority
   const stuck = isStuck({ lastActivityAt: todo.updated_at ?? todo.created_at, isComplete: todo.done })
 
@@ -168,7 +169,7 @@ function Row({ todo, context, onEdit, childCount = 0, onMarkedDone }) {
   )
 }
 
-export default function TodoItem({ todo, context, childTodos = [], contextsById, onEdit, onMarkedDone }) {
+export default function TodoItem({ todo, context, childTodos = [], contextsById, onEdit, onMarkedDone, contextMissedRateMap }) {
   const [expanded, setExpanded] = useState(false)
   const hasChildren = childTodos.length > 0
   const doneCount = childTodos.filter((c) => c.done).length
@@ -189,7 +190,14 @@ export default function TodoItem({ todo, context, childTodos = [], contextsById,
           <span className="mr-1 w-6 shrink-0" />
         )}
         <div className="flex-1">
-          <Row todo={todo} context={context} onEdit={onEdit} childCount={childTodos.length} onMarkedDone={onMarkedDone} />
+          <Row
+            todo={todo}
+            context={context}
+            onEdit={onEdit}
+            childCount={childTodos.length}
+            onMarkedDone={onMarkedDone}
+            contextMissedRateMap={contextMissedRateMap}
+          />
         </div>
         {hasChildren && (
           <span className="ml-2 shrink-0 font-mono text-xs text-hud-muted">
@@ -206,6 +214,7 @@ export default function TodoItem({ todo, context, childTodos = [], contextsById,
                 context={contextsById.get(child.context_id)}
                 onEdit={onEdit}
                 onMarkedDone={onMarkedDone}
+                contextMissedRateMap={contextMissedRateMap}
               />
             </li>
           ))}
