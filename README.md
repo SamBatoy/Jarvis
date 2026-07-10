@@ -203,3 +203,4 @@ not by asking the model to "check with the user first" in a system prompt.
 Every confirmed write (and every automated cron action) is also recorded to
 the `action_log` table — visible in the Archive tab's "Recent Activity"
 section — so there's always a visible record of what Jarvis did and why.
+
